@@ -447,7 +447,7 @@
 <!-- ── HERO (clean) ── -->
 <div class="hero">
   <div class="hero-text">
-    <h1>How far is the beach, really?</h1>
+    <h1>Before you book, find your nearest beach access.</h1>
     <p class="tagline">Find verified public beach access points near any NC or SC address.</p>
   </div>
   <div class="search-bar">
@@ -1408,7 +1408,7 @@ const SC_BEACH_ACCESS = [
 // APP CODE — no need to edit below this line
 // ═══════════════════════════════════════════════════════════
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiYWpoYW5kIiwiYSI6ImNtcWFiMG5saTAwMTIycG9kazIwYTc5ZjkifQ.EjVB9C03wdPi2JRDJQoXwA';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYWpoYW5kIiwiYSI6ImNtcWk1d2Q3YzAzY3QycnE2b3YxMXRyYW4ifQ.JBQ1KCT04_NJh0xieL50ZQ';
 const NC_DCM_URL = 'https://services2.arcgis.com/kCu40SDxsCGcuUWO/arcgis/rest/services/DCM_Beach_and_Waterfront_Access/FeatureServer/0/query';
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -1478,31 +1478,18 @@ function shuffle(arr) {
 }
 
 async function loadRentalsFromSheet() {
-  if (!RENTALS_SHEET_URL || RENTALS_SHEET_URL === 'YOUR_GOOGLE_SHEETS_CSV_URL_HERE') return;
+  const SHEET_ID = '1LfglYd8-GgRFbzEKhbocs4DffJXwUE-KxJWRbnL6iRM';
   const container = document.getElementById('rentals-list');
   try {
     container.innerHTML = '<div style="padding:12px;font-size:11px;color:#94a3b8">Loading rentals…</div>';
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(RENTALS_SHEET_URL);
-    const res = await fetch(proxyUrl);
-    const csv = await res.text();
-    console.log('CSV received:', csv.substring(0, 200));
-    if (!csv || csv.trim().length === 0) {
-      container.innerHTML = '<div style="padding:12px;font-size:11px;color:#e11d48">Sheet returned empty — check it\'s published as CSV</div>';
-      return;
-    }
-    const [header, ...rows] = csv.trim().split('\n');
-    const cols = header.split(',').map(c => c.trim().replace(/^"|"$/g, '').toLowerCase());
-    console.log('Columns found:', cols);
-    allRentals = rows.filter(r => r.trim()).map(row => {
-      const vals = [];
-      let cur = '', inQ = false;
-      for (const ch of row) {
-        if (ch === '"') { inQ = !inQ; }
-        else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
-        else cur += ch;
-      }
-      vals.push(cur.trim());
-      return Object.fromEntries(cols.map((c, i) => [c, (vals[i] || '').replace(/^"|"$/g, '')]));
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+    const res = await fetch(url);
+    const text = await res.text();
+    // Strip the Google wrapper: /*O_o*/ google.visualization.Query.setResponse({...});
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const cols = json.table.cols.map(c => c.label.toLowerCase());
+    allRentals = json.table.rows.map(row => {
+      return Object.fromEntries(cols.map((c, i) => [c, row.c[i]?.v ?? '']));
     });
     console.log('Rentals loaded:', allRentals);
     renderRentals();
