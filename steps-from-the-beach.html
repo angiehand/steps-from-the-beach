@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steps from the Beach — NC & SC Beach Access Finder</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { margin: 0; padding: 0; overflow-x: hidden; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f4f0;
+      color: #0c1a2e;
+    }
+    .page-wrap {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── TOP BAR (wordmark) ── */
+    .top-bar {
+      background: #fff;
+      border-bottom: 1px solid #e8edf2;
+      padding: 0 28px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .wordmark {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+      color: #0891b2;
+    }
+
+    /* ── HERO (clean, no photo) ── */
+    .hero {
+      background: #f7f5f0;
+      border-bottom: 1px solid #e8e4de;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 44px 24px 36px;
+    }
+    .hero-text {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .hero-text h1 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 38px;
+      color: #0891b2;
+      letter-spacing: -0.5px;
+      line-height: 1.15;
+    }
+    .hero-text .tagline {
+      font-size: 15px;
+      color: #6b7060;
+      margin-top: 10px;
+      font-weight: 400;
+    }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 680px;
+      background: white;
+      border: 1px solid #d8d4ce;
+      border-radius: 14px;
+      padding: 8px;
+      position: relative;
+    }
+    .search-input-wrap { flex: 1; position: relative; }
+    .search-bar input {
+      width: 100%;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      color: #1c2118;
+      background: transparent;
+    }
+    .search-bar input:focus { background: #f7f5f0; }
+    .search-bar input::placeholder { color: #a8a49e; }
+
+    .autocomplete-list {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: white; border: 1.5px solid #e2e8f0;
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 1000; overflow: hidden; display: none;
+    }
+    .autocomplete-list.open { display: block; }
+    .autocomplete-item {
+      padding: 11px 16px; font-size: 13px; cursor: pointer;
+      border-bottom: 1px solid #f1f5f9; line-height: 1.4;
+      transition: background 0.1s;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover, .autocomplete-item.selected { background: #e0f7ff; }
+    .autocomplete-item strong { color: #0c1a2e; display: block; font-weight: 600; }
+    .autocomplete-item span { color: #94a3b8; font-size: 11px; }
+
+    .search-bar button {
+      padding: 11px 22px;
+      background: #0891b2;
+      color: white;
+      border: none; border-radius: 9px;
+      font-size: 14px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: background 0.2s; white-space: nowrap;
+    }
+    .search-bar button:hover { background: #0369a1; }
+    .search-bar button:disabled { background: #a8a49e; cursor: not-allowed; }
+
+    /* ── 3-COLUMN MAIN LAYOUT ── */
+    .main {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 220px);
+      min-height: 480px;
+    }
+
+    /* ── LEFT SIDEBAR (results) ── */
+    .left-sidebar {
+      width: 370px; min-width: 300px;
+      background: #fff;
+      border-right: 1px solid #e8e4de;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+
+    /* ── FILTERS CHIPS ── */
+    .filters {
+      padding: 12px 14px; border-bottom: 1px solid #e8e4de;
+      flex-shrink: 0; background: #faf9f7;
+    }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-chip {
+      padding: 6px 12px; border-radius: 20px;
+      border: 1px solid #d0ccc5; background: white;
+      font-size: 11px; font-family: inherit; color: #5a5550;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .filter-chip:hover { border-color: #0891b2; color: #0891b2; }
+    .filter-chip.active { background: #e0f7ff; border-color: #0891b2; color: #0369a1; font-weight: 600; }
+
+    /* ── RESULTS ── */
+    .results { flex: 1; overflow-y: auto; padding: 16px 16px 24px; background: #fff; }
+    .results::-webkit-scrollbar { width: 4px; }
+    .results::-webkit-scrollbar-track { background: transparent; }
+    .results::-webkit-scrollbar-thumb { background: #d5cfc7; border-radius: 4px; }
+
+    .results-header {
+      font-size: 11px; font-weight: 700; color: #a89e92;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0 2px 12px;
+    }
+
+    .empty-state { text-align: center; padding: 48px 20px; }
+    .empty-state .icon { font-size: 44px; margin-bottom: 14px; }
+    .empty-state p { font-size: 13px; line-height: 1.75; color: #7a7060; }
+    .empty-state .sub { font-size: 11px; color: #a89e92; margin-top: 8px; }
+
+    /* ── RESULT CARD ── */
+    .result-card {
+      background: #faf9f7;
+      border: 1px solid #e8e4de;
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .result-card:hover {
+      border-color: #0891b2;
+      background: white;
+      box-shadow: 0 4px 16px rgba(8,145,178,0.12);
+      transform: translateY(-1px);
+    }
+    .result-card.active {
+      border-color: #0891b2;
+      background: #e0f7ff;
+      box-shadow: 0 4px 16px rgba(8,145,178,0.18);
+    }
+
+    .card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .card-rank {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 8px; flex-shrink: 0;
+      background: #0891b2;
+      color: white; font-size: 11px; font-weight: 700;
+    }
+    .card-title { flex: 1; }
+    .card-name { font-size: 13px; font-weight: 700; color: #0c1a2e; line-height: 1.3; }
+    .card-loc { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    .card-dist-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .card-dist { font-size: 13px; font-weight: 700; color: #0369a1; }
+    .card-county { font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 2px 7px; border-radius: 8px; }
+
+    .amenity-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .amenity {
+      padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: 500;
+      background: #e0f2fe; color: #0369a1;
+    }
+    .amenity.accessible { background: #ccfbf1; color: #0f766e; }
+    .amenity.restroom { background: #fef9c3; color: #854d0e; }
+    .amenity.shower { background: #ede9fe; color: #5b21b6; }
+    .amenity.kayak { background: #dcfce7; color: #15803d; }
+    .amenity.wheelchair { background: #fce7f3; color: #9d174d; }
+
+    .route-hint { font-size: 11px; color: #94a3b8; margin-top: 8px; font-weight: 500; }
+    .result-card.active .route-hint { color: #0891b2; }
+
+    /* ── WALK PILL POPUP ── */
+    .walk-pill .mapboxgl-popup-content {
+      background: #fff;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      padding: 5px 10px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      white-space: nowrap;
+    }
+    .walk-pill .mapboxgl-popup-tip { display: none; }
+
+    /* ── MAP ── */
+    #map { flex: 1; overflow: hidden; }
+
+    /* ── RENTALS STRIP (below map) ── */
+    .rentals-section {
+      background: #f7f5f0;
+      border-top: 1px solid #e8e4de;
+      padding: 40px 0 52px;
+    }
+    .rentals-section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 24px;
+      padding: 0 48px;
+    }
+    .rentals-section-header h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px; font-weight: 700; color: #1c2118;
+    }
+    .rentals-section-header p {
+      font-size: 13px; color: #a89e92;
+    }
+
+    /* Hipcamp-style horizontal scroll row */
+    .rentals-scroll-wrap { position: relative; }
+    .rentals-grid {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding: 8px 48px 20px;
+      scrollbar-width: none;
+    }
+    .rentals-grid::-webkit-scrollbar { display: none; }
+
+    /* Scroll arrow buttons */
+    .scroll-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: white; border: 1px solid #e8e4de;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; z-index: 10;
+      transition: all 0.15s; color: #1c2118;
+    }
+    .scroll-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.18); transform: translateY(-50%) scale(1.05); }
+    .scroll-btn.left { left: 10px; }
+    .scroll-btn.right { right: 10px; }
+
+    .rental-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.18s;
+      flex: 0 0 260px;
+      scroll-snap-align: start;
+      border: none;
+    }
+    .rental-card:hover { transform: translateY(-3px); }
+    .rental-img {
+      width: 100%; height: 180px;
+      object-fit: cover; display: block;
+      background: #e8e4de;
+      border-radius: 16px 16px 0 0;
+    }
+    .rental-body { padding: 14px 16px 16px; }
+    .rental-tag {
+      display: inline-block;
+      background: #fff3e0; color: #c67c00;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 6px; margin-bottom: 7px;
+    }
+    .rental-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px; font-weight: 700; color: #1c2118; line-height: 1.3;
+    }
+    .rental-loc { font-size: 12px; color: #a89e92; margin-top: 3px; }
+    .rental-bottom { margin-top: 12px; }
+    .rental-btn {
+      display: inline-block;
+      padding: 8px 18px;
+      background: #0891b2;
+      color: white; font-size: 12px; font-weight: 600;
+      border-radius: 8px; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .rental-btn:hover { background: #0369a1; }
+
+    /* ── SHOP SECTION ── */
+    .shop-section {
+      background: #f8f7f4;
+      border-top: 1px solid #e4ddd4;
+      padding: 56px 40px 72px;
+    }
+    .shop-inner { max-width: 1200px; margin: 0 auto; }
+    .shop-intro {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 32px; margin-bottom: 36px;
+      border-bottom: 1px solid #d9d2c9; padding-bottom: 28px;
+    }
+    .shop-eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #0891b2; display: block; margin-bottom: 8px;
+    }
+    .shop-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 36px; font-weight: 700; color: #0c1a2e;
+      line-height: 1.15; margin: 0;
+    }
+    .shop-subtext {
+      font-size: 14px; color: #64748b; line-height: 1.6;
+      max-width: 340px; margin: 0; flex-shrink: 0;
+    }
+    .shop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 300px 300px;
+      gap: 12px;
+    }
+    .shop-card {
+      position: relative; overflow: hidden;
+      display: block; text-decoration: none;
+      background: #d4cfc8;
+    }
+    .shop-card:first-child {
+      grid-row: 1 / 3;
+    }
+    .shop-card-img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform 0.5s ease;
+    }
+    .shop-card:hover .shop-card-img { transform: scale(1.05); }
+    .shop-card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 22px 20px;
+      transition: background 0.3s;
+    }
+    .shop-card:hover .shop-card-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 55%, transparent 100%);
+    }
+    .shop-card-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.75);
+      margin-bottom: 4px;
+    }
+    .shop-card-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px; font-weight: 700; color: #fff;
+      line-height: 1.2; margin-bottom: 6px;
+    }
+    .shop-card:first-child .shop-card-title { font-size: 30px; }
+    .shop-card-desc { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 14px; }
+    .shop-card-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff;
+      border-bottom: 1.5px solid rgba(255,255,255,0.5);
+      padding-bottom: 2px; transition: border-color 0.2s;
+    }
+    .shop-card:hover .shop-card-cta { border-color: #fff; }
+
+    /* ── LOADING / ERROR / SHARE ── */
+    .loading { display: none; align-items: center; gap: 10px; padding: 16px; color: #64748b; font-size: 13px; }
+    .loading.show { display: flex; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid #e0eaf4; border-top-color: #0891b2;
+      border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .share-btn {
+      display: none; margin: 0 14px 10px;
+      padding: 9px; background: white; color: #0369a1;
+      border: 1.5px solid #bae6fd; border-radius: 10px;
+      font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer;
+      text-align: center; transition: all 0.15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .share-btn:hover { background: #e0f7ff; border-color: #0891b2; }
+    .share-btn.show { display: block; }
+
+    .error-msg {
+      padding: 12px 16px; background: #fff1f2; color: #be123c;
+      border-left: 3px solid #be123c; font-size: 13px;
+      margin: 10px; border-radius: 8px; display: none;
+    }
+    .error-msg.show { display: block; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+<!-- ── TOP BAR ── -->
+<header class="top-bar">
+  <span class="wordmark">Steps from the Beach</span>
+</header>
+
+<!-- ── HERO (clean) ── -->
+<div class="hero">
+  <div class="hero-text">
+    <h1>How far is the beach, really?</h1>
+    <p class="tagline">Find verified public beach access points near any NC or SC address.</p>
+  </div>
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <input type="text" id="address-input" placeholder="Enter an address — OBX, Kiawah, Myrtle Beach…" autocomplete="off" />
+      <div class="autocomplete-list" id="autocomplete-list"></div>
+    </div>
+    <button id="search-btn" onclick="search()">Find beaches</button>
+  </div>
+</div>
+
+<!-- ── 3-COLUMN MAIN ── -->
+<div class="main">
+
+  <!-- LEFT: Results -->
+  <div class="left-sidebar">
+    <div class="filters" id="filters" style="display:none">
+      <div class="filter-chips">
+        <button class="filter-chip" data-filter="restroom" onclick="toggleFilter(this)">🚻 Restroom</button>
+        <button class="filter-chip" data-filter="shower" onclick="toggleFilter(this)">🚿 Shower</button>
+        <button class="filter-chip" data-filter="parking" onclick="toggleFilter(this)">🅿️ Parking</button>
+        <button class="filter-chip" data-filter="accessible" onclick="toggleFilter(this)">♿ Accessible</button>
+        <button class="filter-chip" data-filter="kayak" onclick="toggleFilter(this)">🛶 Kayak</button>
+        <button class="filter-chip" data-filter="wheelchair" onclick="toggleFilter(this)">🦽 Wheelchair</button>
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+    <div class="loading" id="loading"><div class="spinner"></div> Finding beach access points…</div>
+    <button class="share-btn" id="share-btn" onclick="shareLink()">🔗 Copy shareable link</button>
+
+    <div class="results" id="results">
+      <div class="empty-state">
+        <div class="icon">🌊</div>
+        <p>Enter a North Carolina address to find nearby public beach access points.</p>
+        <p class="sub">Data: NC Division of Coastal Management</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Map -->
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px 12px 12px 8px;">
+    <div id="map" style="flex:1;border-radius:12px;overflow:hidden;border:1px solid #e8e4de;"></div>
+    <button onclick="toggleMapStyle()" id="style-toggle"
+      style="position:absolute;top:10px;left:10px;
+             background:white;border:none;border-radius:8px;
+             padding:7px 12px;font-size:11px;font-weight:700;font-family:inherit;
+             color:#0c1a2e;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);
+             transition:all 0.15s;z-index:10">
+      🗺️ Map View
+    </button>
+    <div id="map-hint" style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+      background:rgba(12,26,46,0.75);color:white;font-size:11px;font-weight:500;
+      padding:6px 14px;border-radius:20px;pointer-events:none;white-space:nowrap;
+      backdrop-filter:blur(4px);transition:opacity 0.4s">
+      📍 Click anywhere to search from that spot
+    </div>
+    <div style="position:absolute;bottom:8px;right:10px;
+      font-size:10px;color:rgba(255,255,255,0.65);
+      text-shadow:0 1px 3px rgba(0,0,0,0.6);
+      pointer-events:none;text-align:right;line-height:1.5;z-index:10">
+      Route shown is estimated. Distances are exact.
+    </div>
+  </div>
+
+</div>
+
+<!-- ── RENTALS STRIP ── -->
+<section class="rentals-section" id="rentals-section">
+  <div class="rentals-section-header">
+    <h2 id="rentals-heading">Rentals nearby</h2>
+    <p>Verified beach access · Steps from the Beach</p>
+  </div>
+  <div class="rentals-scroll-wrap">
+    <button class="scroll-btn left" onclick="scrollRentals(-1)">‹</button>
+    <div class="rentals-grid" id="rentals-list">
+      <!-- Populated by JS -->
+    </div>
+    <button class="scroll-btn right" onclick="scrollRentals(1)">›</button>
+  </div>
+</section>
+
+<!-- ── SHOP SECTION ── -->
+<section class="shop-section">
+  <div class="shop-inner">
+    <div class="shop-intro">
+      <div>
+        <span class="shop-eyebrow">Beach Gear</span>
+        <h2 class="shop-heading">Shop the Beach Day</h2>
+      </div>
+      <p class="shop-subtext">Curated picks for every NC beach trip — from the first towel down to the last bag packed.</p>
+    </div>
+    <div class="shop-grid" id="shop-grid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ✏️  GOOGLE SHEETS URL
+// Paste your published CSV URL here.
+// File → Share → Publish to web → Sheet1 → CSV → Publish
+// ═══════════════════════════════════════════════════════════
+const RENTALS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFETCBw1TCzaHnvjkRpr8UZmdCH8p_H7-WRHx3OxYIWG-SyFoJkmkL7dfR2xc3d03mYNBx7zTeuyeV/pub?gid=0&single=true&output=csv';
+
+// ═══════════════════════════════════════════════════════════
+// ✏️  EDIT YOUR BEACH GEAR CATEGORIES HERE
+// Replace the "#" with your ShopMy collection URL.
+// ═══════════════════════════════════════════════════════════
+const BEACH_GEAR = [
+  {
+    label: "Chairs & Shade",
+    desc: "Sun-proof your beach day",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1454391304352-2bf4678b1a7a?w=1200&q=80"
+  },
+  {
+    label: "Swim",
+    desc: "Gear up for the waves",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1668177943187-77f57d96c692?w=800&q=80",
+    position: "top"
+  },
+  {
+    label: "Beach Bags & Coolers",
+    desc: "Pack light, bring everything",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1596913426691-660945d833ff?w=800&q=80"
+  },
+  {
+    label: "Sun Protection",
+    desc: "Stay covered, stay out longer",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1622498159371-15d14f8acdaa?w=800&q=80"
+  },
+  {
+    label: "Towels & Cover-Ups",
+    desc: "The finishing touch",
+    link: "#",
+    img: "https://images.unsplash.com/photo-1625479969471-c0a79753d2d3?w=800&q=80"
+  },
+];
+
+// ═══════════════════════════════════════════════════════════
+// SC BEACH ACCESS — hardcoded (no public SC API exists)
+// Community walkovers = valid access for rental guests
+// ═══════════════════════════════════════════════════════════
+const SC_BEACH_ACCESS = [
+  // ── KIAWAH ISLAND ──────────────────────────────────────
+  // Public park (only public beach access on island)
+  { geometry: { x: -80.1681, y: 32.6017 }, attributes: {
+    ACCESS_ID: 'Beachwalker County Park', PLACE: 'Kiawah Island', ACCESS_LOC: 'West end — 8 Beachwalker Dr (public access)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 150, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'County Park'
+  }},
+  // West Beach Village — Boardwalks 1–15 (community access for residents, guests & renters)
+  { geometry: { x: -80.1640, y: 32.6025 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #1', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Duneside Villas / Inlet Cove / Sparrow Pond area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1600, y: 32.6030 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #2', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Duneside Villas / Sparrow Pond area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1480, y: 32.6038 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #5', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Shipwatch Villas (private to community)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1440, y: 32.6042 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #6', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Shipwatch Villas (private to community)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1400, y: 32.6046 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #7', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Seascape Villas area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1362, y: 32.6050 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #8A', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — high-density ramp (Eugenia Ave west end)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1330, y: 32.6052 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #8B', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — high-density switchback ramp',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1300, y: 32.6055 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #9', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1270, y: 32.6057 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #10', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave between #41 & #43A (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1230, y: 32.6059 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #12', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1195, y: 32.6061 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #13', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — mid Eugenia Ave area (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1160, y: 32.6063 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #14', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Oceanwoods / Low Oak Woods area (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1125, y: 32.6065 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #15', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — east end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1085, y: 32.6067 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #16', PLACE: 'Kiawah Island', ACCESS_LOC: 'West/East Beach boundary — ramp',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // East Beach Village — Boardwalks 16–30
+  { geometry: { x: -80.1001, y: 32.6070 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #17', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Mariners Watch / Night Heron Park area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 80, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0975, y: 32.6072 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #18', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Mariners Watch / Windswept Villas area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0943, y: 32.6074 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #19', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas (near Sanctuary Hotel)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0910, y: 32.6076 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #20', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0878, y: 32.6078 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #21', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas (high-density)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0848, y: 32.6080 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #22', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept / Parkside Villas (switchback ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0752, y: 32.6085 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #27', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Tennis Club / Turtle Cove Villas (switchback ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0726, y: 32.6088 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #28', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Turtle Point / Atlantic Beach Homes',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0704, y: 32.6090 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #29', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Turtle Point / Atlantic Beach Homes',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // Vanderhorst Plantation — Boardwalks 30–42 (exclusive gated area, east end)
+  { geometry: { x: -80.0670, y: 32.6092 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #31', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation — west end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0648, y: 32.6095 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #32', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation (shower station)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'Y', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0626, y: 32.6098 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #33', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0604, y: 32.6101 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #34', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0582, y: 32.6104 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #35', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Beach area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0549, y: 32.6108 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #38', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — east end (stairs)',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0527, y: 32.6110 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #39', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — east end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0505, y: 32.6113 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #40', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — Ocean Marsh Dr / Ocean Course area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // ── SEABROOK ISLAND ────────────────────────────────────
+  { geometry: { x: -80.1597, y: 32.5692 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #1 — Pelican Beach', PLACE: 'Seabrook Island', ACCESS_LOC: 'Pelican Beach — west end near Captain Sam\'s Creek',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 50, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.160998, y: 32.569539 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #2', PLACE: 'Seabrook Island', ACCESS_LOC: 'Pelican Beach — boardwalk access #2',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.165092, y: 32.565151 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #3A', PLACE: 'Seabrook Island', ACCESS_LOC: 'Mid-island boardwalk access #3A',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.165765, y: 32.564350 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #3B', PLACE: 'Seabrook Island', ACCESS_LOC: 'Mid-island boardwalk access #3B',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.166379, y: 32.563528 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #4', PLACE: 'Seabrook Island', ACCESS_LOC: 'Mid-island boardwalk access #4',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.167180, y: 32.562696 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #5', PLACE: 'Seabrook Island', ACCESS_LOC: 'Mid-island boardwalk access #5',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.168512, y: 32.561256 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #6', PLACE: 'Seabrook Island', ACCESS_LOC: 'North Beach area — access #6',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.173297, y: 32.559701 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #7', PLACE: 'Seabrook Island', ACCESS_LOC: 'North Beach area — access #7',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.177305, y: 32.559841 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #8', PLACE: 'Seabrook Island', ACCESS_LOC: 'North Beach area — access #8',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.178968, y: 32.562566 }, attributes: {
+    ACCESS_ID: 'Seabrook Island Access #9 — North Beach', PLACE: 'Seabrook Island', ACCESS_LOC: 'North Beach — east end near North Edisto River Inlet',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 50, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Community Access'
+  }},
+  // ── FOLLY BEACH ────────────────────────────────────────
+  // 49 public beach access points. Amenity & parking data from official city sources.
+  { geometry: { x: -79.9713, y: 32.6544 }, attributes: {
+    ACCESS_ID: 'Folly Beach County Park', PLACE: 'Folly Beach', ACCESS_LOC: '1100 W Ashley Ave — west end, lifeguards, concessions, chair rentals',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 200, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'County Park'
+  }},
+  { geometry: { x: -79.9684, y: 32.6542 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 10th St West', PLACE: 'Folly Beach', ACCESS_LOC: '1001 W Ashley Ave — 12 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 12, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9654, y: 32.6540 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 9th St West', PLACE: 'Folly Beach', ACCESS_LOC: '901 W Ashley Ave — ADA wheelchair ramp, 7 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 7, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9625, y: 32.6538 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 8th St West', PLACE: 'Folly Beach', ACCESS_LOC: '801 W Ashley Ave — 9 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 9, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9596, y: 32.6536 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 7th St West', PLACE: 'Folly Beach', ACCESS_LOC: '701 W Ashley Ave — 13 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 13, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9566, y: 32.6534 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 6th St West', PLACE: 'Folly Beach', ACCESS_LOC: '601 W Ashley Ave — 16 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 16, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9537, y: 32.6531 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 5th St West', PLACE: 'Folly Beach', ACCESS_LOC: '501 W Ashley Ave — 13 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 13, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9508, y: 32.6529 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 4th St West', PLACE: 'Folly Beach', ACCESS_LOC: '401 W Ashley Ave — 12 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 12, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9478, y: 32.6527 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 3rd St West', PLACE: 'Folly Beach', ACCESS_LOC: '301 W Ashley Ave — ADA ramp, restroom, 27 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 27, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9419, y: 32.6523 }, attributes: {
+    ACCESS_ID: 'Folly Beach — W Arctic Ave Walkover', PLACE: 'Folly Beach', ACCESS_LOC: '110 W Arctic Ave — wheelchair mobi-mat to beach (street parking)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 10, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9390, y: 32.6521 }, attributes: {
+    ACCESS_ID: 'Folly Beach Pier — Center St', PLACE: 'Folly Beach', ACCESS_LOC: '101 E Arctic Ave — ADA ramp, restrooms, main tourist area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 40, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9371, y: 32.6517 }, attributes: {
+    ACCESS_ID: 'Folly Beach — E Arctic Ave Walkover', PLACE: 'Folly Beach', ACCESS_LOC: '111 E Arctic Ave — wheelchair mobi-mat to beach (street parking)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 10, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9352, y: 32.6514 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 2nd St East', PLACE: 'Folly Beach', ACCESS_LOC: '201 E Arctic Ave — restrooms & showers, 12 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 12, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9332, y: 32.6510 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 3rd St East', PLACE: 'Folly Beach', ACCESS_LOC: '301 E Arctic Ave — restrooms & showers, 8 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 8, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9313, y: 32.6506 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 4th St East', PLACE: 'Folly Beach', ACCESS_LOC: '401 E Arctic Ave — 15 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9294, y: 32.6503 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 5th St East', PLACE: 'Folly Beach', ACCESS_LOC: '501 E Arctic Ave — ADA flat path, 14 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 14, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9275, y: 32.6499 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 6th St East', PLACE: 'Folly Beach', ACCESS_LOC: '601 E Arctic Ave — 7 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 7, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9218, y: 32.6488 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 9th St East', PLACE: 'Folly Beach', ACCESS_LOC: '901 E Arctic Ave — 10 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 10, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9198, y: 32.6484 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 10th St East', PLACE: 'Folly Beach', ACCESS_LOC: '1001 E Arctic Ave — 6 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 6, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9179, y: 32.6481 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 11th St East', PLACE: 'Folly Beach', ACCESS_LOC: '1101 E Arctic Ave — ADA flat path, 4 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 4, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9160, y: 32.6477 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 12th St East', PLACE: 'Folly Beach', ACCESS_LOC: '1201 E Arctic Ave — 2 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 2, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9131, y: 32.6471 }, attributes: {
+    ACCESS_ID: 'Folly Beach — Summer Place', PLACE: 'Folly Beach', ACCESS_LOC: 'Summer Place lot — east section, 27 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 27, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9102, y: 32.6466 }, attributes: {
+    ACCESS_ID: 'Folly Beach — The Washout', PLACE: 'Folly Beach', ACCESS_LOC: '1563 E Ashley Ave — ADA, restrooms, changing stations, prime surf area, 126 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 126, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.9083, y: 32.6462 }, attributes: {
+    ACCESS_ID: 'Folly Beach — 1671 East', PLACE: 'Folly Beach', ACCESS_LOC: '1671 E Ashley Ave — ADA beach access, 8 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 8, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── ISLE OF PALMS ──────────────────────────────────────
+  // 7-mile island SW to NE. Avenues 5–57. Paid parking: Front Beach area, County Park, Pavilion Dr.
+  // Free street parking: 3rd–9th Ave, Palm Blvd 21st–40th, 42nd–57th Ave (enforced Mar–Oct).
+  // ADA parking: County Park, Pavilion Lot A, 9th Ave, Front Beach Restrooms, 34A Ave, 42nd Ave.
+  { geometry: { x: -79.8100, y: 32.7767 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — Breach Inlet / 5th Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '5th Ave SW end — Breach Inlet area, quiet beach, free street parking (no amenities)',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8020, y: 32.7807 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 9th Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '9th Ave — ADA accessible parking, free street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7981, y: 32.7833 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — Front Beach Restrooms', PLACE: 'Isle of Palms', ACCESS_LOC: 'Ocean Blvd ~11th Ave — public restrooms, ADA accessible parking (metered)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 40, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7951, y: 32.7843 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — Pavilion Drive Lots', PLACE: 'Isle of Palms', ACCESS_LOC: 'Pavilion Dr ~12th–13th Ave — 2 municipal paid lots, restaurants & shops nearby',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 200, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7920, y: 32.7857 }, attributes: {
+    ACCESS_ID: 'Isle of Palms County Park', PLACE: 'Isle of Palms', ACCESS_LOC: '14th Ave — lifeguards, chair/umbrella rentals, snack bar, playground, volleyball; 445 spaces',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 445, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'County Park'
+  }},
+  { geometry: { x: -79.7788, y: 32.7897 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 21st Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '21st Ave — ADA accessible parking, first free-parking zone north of Front Beach',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 50, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7713, y: 32.7920 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 25th Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '25th Ave — wide path, golf cart parking, popular family access, free',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 40, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7656, y: 32.7938 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 28th Ave (Rec Center)', PLACE: 'Isle of Palms', ACCESS_LOC: '28th Ave — IOP Recreation Center nearby with additional parking, playground, courts; free',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 60, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7543, y: 32.7972 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 34A Ave (ADA Boardwalk)', PLACE: 'Isle of Palms', ACCESS_LOC: '34/34A Ave — wide paved ADA-compliant boardwalk, stroller-friendly, designated accessible parking; free',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7468, y: 32.7995 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 38th Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '38th Ave — quieter mid-upper island, good parking availability, free',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7393, y: 32.8018 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 42nd Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '42nd Ave — ADA accessible parking, upper island, uncrowded beach; free',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 25, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7242, y: 32.8064 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — 50th Ave', PLACE: 'Isle of Palms', ACCESS_LOC: '50th Ave — secluded upper island, excellent shelling and fishing, free street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.7110, y: 32.8105 }, attributes: {
+    ACCESS_ID: 'Isle of Palms — Wild Dunes Area (57th Ave)', PLACE: 'Isle of Palms', ACCESS_LOC: '57th Ave NE end — Wild Dunes Resort; private resort access for resort guests/renters',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 100, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // ── SULLIVAN'S ISLAND ──────────────────────────────────
+  // 3.5-mile island. Stations 12–32, numbered SW (Fort Moultrie) → NE (Breach Inlet).
+  // All parking free (public right-of-way). No restrooms/showers at beach access points.
+  // ADA accessible paths: Station 18½, 21, 26. Beach wheelchairs via Town Hall reservation.
+  // GPS coordinates verified via SaltChef.com field survey table.
+  { geometry: { x: -79.8587, y: 32.7601 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 12 (Fort Moultrie)", PLACE: "Sullivan's Island", ACCESS_LOC: 'Middle St & Station 12 — Fort Moultrie NPS; 20+ parking spaces, restrooms',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8520, y: 32.7574 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 16", PLACE: "Sullivan's Island", ACCESS_LOC: 'Atlantic Ave & Station 16 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8444, y: 32.7578 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 18", PLACE: "Sullivan's Island", ACCESS_LOC: 'Atlantic Ave & Station 18 — Nature Trail ADA matting connects to Station 18½; street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8428, y: 32.7580 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 18½ (ADA)", PLACE: "Sullivan's Island", ACCESS_LOC: 'Flag St & Station 18½ — ADA accessible path, Nature Trail matting; street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8416, y: 32.7579 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 19", PLACE: "Sullivan's Island", ACCESS_LOC: 'Thee St & Station 19 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8378, y: 32.7598 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 21 (ADA)", PLACE: "Sullivan's Island", ACCESS_LOC: 'Pettigrew St & Station 21 — ADA accessible path, handicap parking; street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8365, y: 32.7605 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 22", PLACE: "Sullivan's Island", ACCESS_LOC: 'Pettigrew St & Station 22 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8355, y: 32.7616 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 22½", PLACE: "Sullivan's Island", ACCESS_LOC: 'Atlantic Ave & Station 22½ — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8328, y: 32.7628 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 24", PLACE: "Sullivan's Island", ACCESS_LOC: 'Atlantic Ave & Station 24 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8308, y: 32.7636 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 25", PLACE: "Sullivan's Island", ACCESS_LOC: 'Atlantic Ave & Station 25 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8286, y: 32.7638 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 26 (ADA)", PLACE: "Sullivan's Island", ACCESS_LOC: 'Bayonne St & Station 26 — ADA accessible path, 2 handicap spaces + street parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8267, y: 32.7647 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 26½", PLACE: "Sullivan's Island", ACCESS_LOC: 'Bayonne St & Station 26½ — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8247, y: 32.7655 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 27", PLACE: "Sullivan's Island", ACCESS_LOC: 'Bayonne St & Station 27 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8226, y: 32.7661 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 28", PLACE: "Sullivan's Island", ACCESS_LOC: 'Bayonne St & Station 28 — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8204, y: 32.7666 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 28½", PLACE: "Sullivan's Island", ACCESS_LOC: 'Marshall Blvd & Station 28½ — street parking along access street',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8184, y: 32.7677 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 29", PLACE: "Sullivan's Island", ACCESS_LOC: 'Marshall Blvd & Station 29 — ~15 spaces along Station 29 St',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8171, y: 32.7687 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 30", PLACE: "Sullivan's Island", ACCESS_LOC: 'Marshall Blvd & Station 30 — ~15 spaces roadside lot on Marshall + Station 30 St',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8155, y: 32.7703 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 31", PLACE: "Sullivan's Island", ACCESS_LOC: 'Marshall Blvd & Station 31 — foot path only, no dedicated parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 0, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8149, y: 32.7720 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Station 32", PLACE: "Sullivan's Island", ACCESS_LOC: 'Marshall Blvd & Station 32 — NE end, foot path only, no dedicated parking',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 0, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.8149, y: 32.7747 }, attributes: {
+    ACCESS_ID: "Sullivan's Island — Thomson Park (Station 32 / Jasper Blvd)", PLACE: "Sullivan's Island", ACCESS_LOC: 'Jasper Blvd & Middle St — Thomson Park; 11-space lot, NE end near Breach Inlet',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 11, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── EDISTO BEACH ───────────────────────────────────────
+  // 37 public accesses on Palmetto Blvd at every intersection + State Park. All free, 6am-10pm, no overnight.
+  // ADA paths: Lybrand, Mitchell, Baynard, Edings. Beach mats (Access 1, ~9, 20/Mitchell, 28/Laroche).
+  // GPS coordinates verified via SaltChef.com field survey (DMS converted).
+  { geometry: { x: -80.2967, y: 32.5039 }, attributes: {
+    ACCESS_ID: 'Edisto Beach State Park', PLACE: 'Edisto Beach', ACCESS_LOC: '8377 State Cabin Rd — full facilities, restrooms, showers, kayak/canoe launch; campground on-site; paid entry ~$5',
+    COUNTY: 'Colleton', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 100, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'Y', BeachWheelchair: 'N', ACESS_TYPE: 'State Park'
+  }},
+  { geometry: { x: -80.2972, y: 32.5029 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Coral St (Access 1)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Coral St — NE end near State Park; street parking; beach mat on sand',
+    COUNTY: 'Colleton', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 5, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3151, y: 32.4903 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Cheehaw St (Access ~10)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Cheehaw St — 11-space off-street lot + street parking; near Access 9 beach mat',
+    COUNTY: 'Colleton', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 11, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3224, y: 32.4857 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Lybrand St (ADA)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Lybrand St — ADA accessible dune walkover; 10-space lot + street parking',
+    COUNTY: 'Colleton', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 10, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3243, y: 32.4845 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Mitchell St (ADA, Access 20)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Mitchell St — ADA accessible walkover; 15-space lot (largest town lot); beach mat on sand',
+    COUNTY: 'Colleton', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 15, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3252, y: 32.4840 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Baynard St (ADA)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Baynard St — ADA accessible walkover; 2-space lot + street parking',
+    COUNTY: 'Colleton', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 2, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3258, y: 32.4830 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Point St & Edings St (ADA)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Point St & Edings St — ADA accessible walkover; 7-space lot + street parking; south bend of beach',
+    COUNTY: 'Colleton', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 7, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3313, y: 32.4797 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Point St & Laroche St (Access 28)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Point St & Laroche St — 10-space lot + street parking; beach mat on sand; southern section',
+    COUNTY: 'Colleton', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 10, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3323, y: 32.4791 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Point St & Neptune St', PLACE: 'Edisto Beach', ACCESS_LOC: 'Point St & Neptune St — street parking only; southernmost point of beach loop',
+    COUNTY: 'Colleton', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 5, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -80.3427, y: 32.4893 }, attributes: {
+    ACCESS_ID: 'Edisto Beach — Palmetto & Ebbtide St (SW Section)', PLACE: 'Edisto Beach', ACCESS_LOC: 'Palmetto Blvd & Ebbtide St — 4-space lot + street parking; west end of Palmetto Blvd loop',
+    COUNTY: 'Colleton', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 4, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── HUNTING ISLAND ─────────────────────────────────────
+  // Entire island is Beaufort County State Park. Paid park entry (~$8/vehicle).
+  // Mobi-Mats (beach mats) at both main access areas. Lifeguards at North Beach in summer.
+  // South beach accessible year-round but parking is limited.
+  { geometry: { x: -80.4400, y: 32.3800 }, attributes: {
+    ACCESS_ID: 'Hunting Island SP — North Beach (Lots C/D)', PLACE: 'Hunting Island', ACCESS_LOC: '2555 Sea Island Pkwy — main north beach; restrooms, showers, concessions, lifeguards (summer); Mobi-Mat ADA path; paid park entry',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 300, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'State Park'
+  }},
+  { geometry: { x: -80.4470, y: 32.3680 }, attributes: {
+    ACCESS_ID: 'Hunting Island SP — Lighthouse Beach (Lot F)', PLACE: 'Hunting Island', ACCESS_LOC: 'Lighthouse Rd — beach access near historic lighthouse; restrooms; Mobi-Mat ADA path; paid park entry',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 100, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'State Park'
+  }},
+  // ── HILTON HEAD ────────────────────────────────────────
+  // 7 Town-operated public beach parks. Paid parking Mar 1–Sep 7 ($3/hr M-F, $5/hr Sat-Sun).
+  // Coligny has FREE parking year-round (397 spaces). All parks open 6am-10pm.
+  // Resident permit spaces exist at Driessen (27) and Islanders (127) — visitor spaces noted below.
+  // Fish Haul and Mitchelville face Port Royal Sound (not Atlantic Ocean) — excellent for walking/birding.
+  // GPS anchored from Google Maps URLs on parkhhi.org official parking site.
+  { geometry: { x: -80.7639, y: 32.1370 }, attributes: {
+    ACCESS_ID: 'Hilton Head — Alder Lane Beach Access', PLACE: 'Hilton Head Island', ACCESS_LOC: '2 Woodward Ave (off S Forest Beach Dr) — 22 spaces; paid parking; seasonal lifeguards; short boardwalk to beach',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 22, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.7477, y: 32.1418 }, attributes: {
+    ACCESS_ID: 'Coligny Beach Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '1 Coligny Circle (end of Pope Ave) — 397 FREE spaces; restrooms, showers, playground, public art, seasonal rentals & lifeguards; beach wheelchair available',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 397, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.7026, y: 32.1944 }, attributes: {
+    ACCESS_ID: 'Hilton Head — Burkes Beach / Chaplin Community Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '11 Castnet Dr — 265 spaces + 132 overflow; paid (May–Sep); restrooms; playground, tennis, basketball; boardwalk to Atlantic beach',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 265, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.6926, y: 32.1979 }, attributes: {
+    ACCESS_ID: 'Driessen Beach Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '64 Bradley Beach Rd — 179 visitor spaces (206 total, 27 resident); paid parking; restrooms, showers, playground, picnic pavilion; Mobi-Mat ADA; seasonal lifeguards & rentals',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 179, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.6889, y: 32.2020 }, attributes: {
+    ACCESS_ID: 'Folly Field Beach Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '55 Starfish Dr (off Folly Field Rd) — 54 spaces; paid parking; restrooms, showers; Mobi-Mat ADA boardwalk; seasonal lifeguards & rentals',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 54, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.6831, y: 32.2068 }, attributes: {
+    ACCESS_ID: 'Islanders Beach Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '94 Folly Field Rd — 37 visitor spaces (164 total, 127 resident); paid parking; restrooms, showers, playground, pavilion; Mobi-Mat ADA; seasonal lifeguards & rentals',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 37, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -80.6888, y: 32.2408 }, attributes: {
+    ACCESS_ID: 'Fish Haul Beach Park', PLACE: 'Hilton Head Island', ACCESS_LOC: '124 Mitchelville Rd — 93 spaces; paid parking; restrooms; Mobi-Mat ADA; faces Port Royal Sound — ideal for walking & birding; historic Gullah Geechee neighborhood',
+    COUNTY: 'Beaufort', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 93, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  // ── MYRTLE BEACH ───────────────────────────────────────
+  // City of Myrtle Beach runs ~82nd Ave N south to ~1st Ave S (~12 miles). Ocean Blvd metered parking Mar 1–Labor Day.
+  // All Ocean Blvd accesses have outdoor showers. State Park at south end has full facilities + separate entry fee.
+  // GPS verified via saltchef.com DMS field survey (all 3 sections: upper, middle, southern).
+  { geometry: { x: -78.9386, y: 33.6492 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach State Park', PLACE: 'Myrtle Beach', ACCESS_LOC: '4401 S Kings Hwy — full park facilities; restrooms, showers, picnic areas, fishing pier, nature trails; paid entry ~$8/vehicle; south end of MB',
+    COUNTY: 'Horry', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 200, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'State Park'
+  }},
+  { geometry: { x: -78.9054, y: 33.6699 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach — 20th Ave S / Hurl Rocks Park', PLACE: 'Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 20th Ave S — Hurl Rocks Park; 50+/- spaces; showers; metered kiosk; southern section',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 50, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.8868, y: 33.6847 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach — 2nd Ave N (50+ spaces)', PLACE: 'Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & 2nd Ave N — 50+/- spaces; showers; metered kiosk; near 2nd Ave Ocean Fishing Pier',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 50, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.8780, y: 33.6936 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach Boardwalk / Plyler Park (SkyWheel)', PLACE: 'Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & Mr. Joe White Ave — Plyler Park; public pay lot; showers; boardwalk & promenade; SkyWheel; seasonal rentals & lifeguards',
+    COUNTY: 'Horry', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 300, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'Public Park'
+  }},
+  { geometry: { x: -78.8651, y: 33.7049 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach — 26th Ave N (24+ spaces)', PLACE: 'Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & 26th Ave N — 24+/- spaces incl. along 26th; showers; metered kiosk',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 24, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.8413, y: 33.7247 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach — 53rd Ave N (60+ spaces)', PLACE: 'Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & 53rd Ave N — one of the largest lots in the city (60+/- spaces); metered kiosk; showers',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 60, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.8173, y: 33.7409 }, attributes: {
+    ACCESS_ID: 'Myrtle Beach — 73rd Ave N (45+ spaces)', PLACE: 'Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & 73rd Ave N — 45+/- spaces; metered kiosk; showers; north end of city',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 45, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── NORTH MYRTLE BEACH ─────────────────────────────────
+  // Three beach sections: Cherry Grove (north), Ocean Drive (center/Main St), Windy Hill & Crescent (south).
+  // All parking FREE. GPS verified via saltchef.com DMS field survey tables.
+  { geometry: { x: -78.6430, y: 33.8278 }, attributes: {
+    ACCESS_ID: 'Cherry Grove — N Ocean Blvd & Sea Mountain Hwy', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & Sea Mountain Hwy (Rt 9) — largest Cherry Grove lot (60+/- spaces); restrooms; showers; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 60, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.6525, y: 33.8255 }, attributes: {
+    ACCESS_ID: 'Ocean Drive — 17th Ave N (restrooms)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & 17th Ave N — 22-space lot; restrooms & showers; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 22, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.6723, y: 33.8187 }, attributes: {
+    ACCESS_ID: 'Ocean Drive — Main St (SHAGging capital)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'N Ocean Blvd & Main St — 25-space lot; restrooms; historic Ocean Drive / shag dancing district; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 25, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.6736, y: 33.8182 }, attributes: {
+    ACCESS_ID: 'Ocean Drive — 1st Ave S (pavilion)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 1st Ave S — 18-space lot; restrooms & showers; picnic pavilion; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 18, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.6799, y: 33.8159 }, attributes: {
+    ACCESS_ID: 'Ocean Drive — 6th Ave S', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 6th Ave S — 21-car + 4 golf cart spaces; restrooms; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 21, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.7006, y: 33.8073 }, attributes: {
+    ACCESS_ID: 'Windy Hill — 17th Ave S (restrooms)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 17th Ave S — 24-car + 6 golf cart spaces; restrooms & showers; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 24, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.7120, y: 33.8024 }, attributes: {
+    ACCESS_ID: 'Windy Hill — 27th Ave S (restrooms)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 27th Ave S — 30-space lot; restrooms & showers; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.7233, y: 33.7969 }, attributes: {
+    ACCESS_ID: 'Windy Hill — 39th Ave S (restrooms)', PLACE: 'North Myrtle Beach', ACCESS_LOC: 'S Ocean Blvd & 39th Ave S — 16-space lot; restrooms; FREE parking; southern end of NMB',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 16, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── GARDEN CITY ────────────────────────────────────────
+  // Horry County maintains 16 public accesses on N/S Waccamaw Dr. All FREE parking, no restrooms.
+  // GPS verified via saltchef.com DMS field survey.
+  { geometry: { x: -78.9880, y: 33.5885 }, attributes: {
+    ACCESS_ID: 'Garden City — Hewes Ave (Access 16)', PLACE: 'Garden City Beach', ACCESS_LOC: 'N Waccamaw Dr & Hewes Ave — 12+/- spaces; FREE parking; northernmost Garden City access',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 12, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9897, y: 33.5867 }, attributes: {
+    ACCESS_ID: 'Garden City — Calhoun Dr (Access 14)', PLACE: 'Garden City Beach', ACCESS_LOC: 'N Waccamaw Dr & Calhoun Dr — 8 car + 8 golf cart spaces; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 8, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9931, y: 33.5832 }, attributes: {
+    ACCESS_ID: 'Garden City — Holiday Dr (Access 10)', PLACE: 'Garden City Beach', ACCESS_LOC: 'N Waccamaw Dr & Holiday Dr — 9+/- spaces; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 9, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9984, y: 33.5766 }, attributes: {
+    ACCESS_ID: 'Garden City — Atlantic Ave / Garden City Pier', PLACE: 'Garden City Beach', ACCESS_LOC: 'S Waccamaw Dr & Atlantic Ave — street parking along Atlantic; Garden City Pier nearby; FREE parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9992, y: 33.5762 }, attributes: {
+    ACCESS_ID: 'Garden City — Azalea Ave (Access 3)', PLACE: 'Garden City Beach', ACCESS_LOC: 'S Waccamaw Dr & Azalea Ave — 13 spaces at access + pay lot across street; FREE street parking',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 13, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.0017, y: 33.5732 }, attributes: {
+    ACCESS_ID: 'Garden City — Cedar Ave (Access 1)', PLACE: 'Garden City Beach', ACCESS_LOC: 'S Waccamaw Dr & Cedar Ave — 4 spaces; FREE parking; southernmost Garden City access',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 4, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── SURFSIDE BEACH ─────────────────────────────────────
+  // Town of Surfside Beach. Paid parking March 1–October 31, 8am–6pm (kiosk). Free rest of year.
+  // Beach wheelchair available through Public Safety Dept (call ahead). GPS verified via saltchef.com DMS survey.
+  { geometry: { x: -78.9680, y: 33.6100 }, attributes: {
+    ACCESS_ID: 'Surfside Beach — 6th Ave N (30+ spaces)', PLACE: 'Surfside Beach', ACCESS_LOC: 'N Ocean Blvd & 6th Ave N — 30+/- spaces; paid kiosk (Mar–Oct); northernmost large lot',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9693, y: 33.6078 }, attributes: {
+    ACCESS_ID: 'Surfside Beach — 3rd Ave N (showers)', PLACE: 'Surfside Beach', ACCESS_LOC: 'N Ocean Blvd & 3rd Ave N — 30+/- spaces; showers; paid kiosk (Mar–Oct); shade structure',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'Y', PARKING: 30, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9755, y: 33.6018 }, attributes: {
+    ACCESS_ID: 'Surfside Beach — 5th Ave S (restrooms)', PLACE: 'Surfside Beach', ACCESS_LOC: 'S Seaside Dr & 5th Ave S — 20 spaces; showers; restrooms; paid kiosk (Mar–Oct)',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'Y', PARKING: 20, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -78.9814, y: 33.5957 }, attributes: {
+    ACCESS_ID: 'Surfside Beach — 13th Ave S (restrooms)', PLACE: 'Surfside Beach', ACCESS_LOC: 'S Ocean Blvd & 13th Ave S — 9 spaces; restrooms; paid kiosk (Mar–Oct); southern section',
+    COUNTY: 'Horry', HAND_BEACH: 'N', RESTRM: 'Y', SHOWER: 'N', PARKING: 9, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  // ── PAWLEYS ISLAND ─────────────────────────────────────
+  // 9 public accesses, ~141 combined spaces. All FREE. No parking 11pm–6am.
+  // GPS verified via saltchef.com DMS field survey. Springs Ave south lot = largest free lot in Georgetown County.
+  { geometry: { x: -79.1143, y: 33.4418 }, attributes: {
+    ACCESS_ID: 'Pawleys Island — Shell Rd', PLACE: 'Pawleys Island', ACCESS_LOC: 'Atlantic Ave & Shell Rd — 8+/- spaces; FREE parking; no parking 11pm–6am; north section of island',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 8, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.1174, y: 33.4374 }, attributes: {
+    ACCESS_ID: 'Pawleys Island — 2nd St', PLACE: 'Pawleys Island', ACCESS_LOC: 'Atlantic Ave & 2nd St — 12+/- spaces; FREE parking; no parking 11pm–6am',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 12, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.1320, y: 33.4127 }, attributes: {
+    ACCESS_ID: 'Pawleys Island — Hazard St', PLACE: 'Pawleys Island', ACCESS_LOC: 'Myrtle Ave & Hazard St — 5+/- spaces; FREE parking; no parking 11pm–6am; mid-island',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 5, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.1326, y: 33.4106 }, attributes: {
+    ACCESS_ID: 'Pawleys Island — Pritchard St', PLACE: 'Pawleys Island', ACCESS_LOC: 'Pritchard St & Springs Ave — 6+/- spaces; FREE parking; no parking 11pm–6am',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 6, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.1385, y: 33.4003 }, attributes: {
+    ACCESS_ID: 'Pawleys Island — Springs Ave South Lot (largest)', PLACE: 'Pawleys Island', ACCESS_LOC: 'South end of Springs Ave — 80+/- spaces; Georgetown County lot; largest FREE beach lot in county; no parking 11pm–6am',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 80, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'County Park'
+  }},
+  // ── LITCHFIELD BEACH ───────────────────────────────────
+  // Huntington Beach State Park anchors the north end. Parker Dr accesses are residential-area walkovers —
+  // most have no/limited parking; 3 with confirmed parking noted below. GPS from saltchef.com DMS survey.
+  { geometry: { x: -79.0732, y: 33.5139 }, attributes: {
+    ACCESS_ID: 'Huntington Beach State Park', PLACE: 'Litchfield Beach', ACCESS_LOC: 'Ocean Hwy & Terrapin Rd, Murrells Inlet — full park facilities; restrooms, showers, camping, nature trails; paid entry ~$8/vehicle; 2 miles of undeveloped beach',
+    COUNTY: 'Georgetown', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 200, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'State Park'
+  }},
+  { geometry: { x: -79.0807, y: 33.4896 }, attributes: {
+    ACCESS_ID: 'Litchfield Beach — Parker Dr & Ancient Mariner', PLACE: 'Litchfield Beach', ACCESS_LOC: 'Parker Dr & Ancient Mariner (S-22-421) — small lot; FREE parking; pedestrian walkover to beach',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 5, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+  { geometry: { x: -79.0856, y: 33.4844 }, attributes: {
+    ACCESS_ID: 'Litchfield Beach — Parker Dr & Summertime Ln', PLACE: 'Litchfield Beach', ACCESS_LOC: 'Parker Dr & Summertime Ln — small lot; FREE parking; pedestrian walkover to beach; southern Litchfield section',
+    COUNTY: 'Georgetown', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 5, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Public Access'
+  }},
+];
+
+// ═══════════════════════════════════════════════════════════
+// APP CODE — no need to edit below this line
+// ═══════════════════════════════════════════════════════════
+
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYWpoYW5kIiwiYSI6ImNtcWFiMG5saTAwMTIycG9kazIwYTc5ZjkifQ.EjVB9C03wdPi2JRDJQoXwA';
+const NC_DCM_URL = 'https://services2.arcgis.com/kCu40SDxsCGcuUWO/arcgis/rest/services/DCM_Beach_and_Waterfront_Access/FeatureServer/0/query';
+
+mapboxgl.accessToken = MAPBOX_TOKEN;
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/satellite-streets-v12',
+  center: [-79.0, 33.8],
+  zoom: 6.5,
+  cooperativeGestures: true
+});
+map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+// ── MAP CLICK TO SEARCH ───────────────────────────────────
+// Show a crosshair cursor on the map so users know they can click
+map.getCanvas().style.cursor = 'crosshair';
+
+map.on('click', async (e) => {
+  const hint = document.getElementById('map-hint');
+  if (hint) { hint.style.opacity = '0'; setTimeout(() => hint.remove(), 400); }
+  const { lng, lat } = e.lngLat;
+
+  // Reverse geocode the clicked point to get a place name
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=address,neighborhood,place&access_token=${MAPBOX_TOKEN}`
+    );
+    const data = await res.json();
+    const label = data.features && data.features.length > 0
+      ? data.features[0].place_name
+      : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+    // Fill the search box with the resolved label
+    document.getElementById('address-input').value = label;
+    closeDropdown();
+
+    // Run search directly from coordinates (skip re-geocoding)
+    await searchFromCoords(lng, lat, label);
+  } catch (err) {
+    // Fallback: search from raw coordinates
+    const label = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    document.getElementById('address-input').value = label;
+    await searchFromCoords(lng, lat, label);
+  }
+});
+
+// State
+let allBeachData = null;
+let activeMarkers = [];
+let addressMarker = null;
+let lastResults = [];
+let lastFiltered = [];
+let currentLat = null, currentLng = null;
+const activeFilters = new Set();
+let activePill = null;
+
+// ── RENTALS FROM GOOGLE SHEETS ────────────────────────────
+let allRentals = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function loadRentalsFromSheet() {
+  if (!RENTALS_SHEET_URL || RENTALS_SHEET_URL === 'YOUR_GOOGLE_SHEETS_CSV_URL_HERE') return;
+  const container = document.getElementById('rentals-list');
+  try {
+    container.innerHTML = '<div style="padding:12px;font-size:11px;color:#94a3b8">Loading rentals…</div>';
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(RENTALS_SHEET_URL);
+    const res = await fetch(proxyUrl);
+    const csv = await res.text();
+    console.log('CSV received:', csv.substring(0, 200));
+    if (!csv || csv.trim().length === 0) {
+      container.innerHTML = '<div style="padding:12px;font-size:11px;color:#e11d48">Sheet returned empty — check it\'s published as CSV</div>';
+      return;
+    }
+    const [header, ...rows] = csv.trim().split('\n');
+    const cols = header.split(',').map(c => c.trim().replace(/^"|"$/g, '').toLowerCase());
+    console.log('Columns found:', cols);
+    allRentals = rows.filter(r => r.trim()).map(row => {
+      const vals = [];
+      let cur = '', inQ = false;
+      for (const ch of row) {
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+        else cur += ch;
+      }
+      vals.push(cur.trim());
+      return Object.fromEntries(cols.map((c, i) => [c, (vals[i] || '').replace(/^"|"$/g, '')]));
+    });
+    console.log('Rentals loaded:', allRentals);
+    renderRentals();
+  } catch (e) {
+    console.warn('Could not load rentals from Google Sheets', e);
+    container.innerHTML = `<div style="padding:12px;font-size:11px;color:#e11d48">Error: ${e.message}</div>`;
+  }
+}
+
+function getRentalsForPlace(placeName) {
+  if (allRentals.length === 0) return { rentals: [], town: null };
+  const lower = placeName.toLowerCase();
+  const towns = [...new Set(allRentals.map(r => r.town).filter(t => t && t.toLowerCase() !== 'featured'))];
+  const matchedTown = towns.find(t => lower.includes(t.toLowerCase()));
+  if (matchedTown) {
+    const pool = allRentals.filter(r => r.town.toLowerCase() === matchedTown.toLowerCase());
+    return { rentals: shuffle(pool), town: matchedTown };
+  }
+  const featured = allRentals.filter(r => r.town.toLowerCase() === 'featured');
+  return { rentals: shuffle(featured), town: null };
+}
+
+function renderRentals(rentals, town = null) {
+  if (!rentals) {
+    const featured = allRentals.filter(r => r.town?.toLowerCase() === 'featured');
+    rentals = shuffle(featured);
+  }
+  const heading = document.getElementById('rentals-heading');
+  if (heading) heading.textContent = town ? `Rentals in ${town}` : 'Featured rentals';
+
+  const container = document.getElementById('rentals-list');
+  container.innerHTML = rentals.slice(0, 6).map(r => `
+    <div class="rental-card">
+      <img class="rental-img" src="${r.img}" alt="${r.name}" onerror="this.style.background='#e8e4de'" />
+      <div class="rental-body">
+        <span class="rental-tag">${r.tag}</span>
+        <div class="rental-name">${r.name}</div>
+        <div class="rental-loc">📍 ${r.town}</div>
+        <div class="rental-bottom">
+          <a class="rental-btn" href="${r.link}" target="_blank" rel="noopener">View →</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER GEAR ────────────────────────────────────────────
+function renderGear() {
+  const grid = document.getElementById('shop-grid');
+  if (!grid) return;
+  grid.innerHTML = BEACH_GEAR.map((cat, i) => `
+    <a class="shop-card" href="${cat.link}" target="_blank" rel="noopener">
+      <img class="shop-card-img" src="${cat.img}" alt="${cat.label}" loading="lazy" style="${cat.position ? `object-position:${cat.position}` : ''}" />
+      <div class="shop-card-overlay">
+        <div class="shop-card-label">Beach Gear</div>
+        <div class="shop-card-title">${cat.label}</div>
+        <div class="shop-card-desc">${cat.desc}</div>
+        <span class="shop-card-cta">Shop Now &rarr;</span>
+      </div>
+    </a>
+  `).join('');
+}
+
+// ── FILTERS ──────────────────────────────────────────────
+function toggleFilter(el) {
+  const f = el.dataset.filter;
+  el.classList.toggle('active');
+  activeFilters[el.classList.contains('active') ? 'add' : 'delete'](f);
+  renderResults(lastResults);
+}
+
+function hasAmenity(site, filter) {
+  const a = site.attributes;
+  switch(filter) {
+    case 'restroom':   return a.RESTRM === 'Y';
+    case 'shower':     return a.SHOWER === 'Y';
+    case 'parking':    return a.PARKING > 0 || (a.PARKING_OPTIONS && a.PARKING_OPTIONS !== 'No Parking');
+    case 'accessible': return a.HAND_BEACH === 'Y';
+    case 'kayak':      return a.KayakCanoeLaunch === 'Y';
+    case 'wheelchair': return a.BeachWheelchair === 'Y';
+    default: return true;
+  }
+}
+
+// ── DISTANCE ─────────────────────────────────────────────
+function distanceMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+function fmtDistance(miles) {
+  const feet = Math.round(miles * 5280);
+  return feet < 1000 ? `${feet} ft` : `${miles.toFixed(1)} mi`;
+}
+
+function fmtSteps(miles) {
+  return `~${Math.round(miles * 2000).toLocaleString()} steps`;
+}
+
+function fmtWalkTime(seconds) {
+  const mins = Math.round(seconds / 60);
+  return mins < 60 ? `${mins} min walk` : `${Math.round(mins/60)}h ${mins%60}m walk`;
+}
+
+// ── DATA ──────────────────────────────────────────────────
+async function fetchBeachData() {
+  const params = new URLSearchParams({
+    where: '1=1',
+    outFields: 'ACCESS_ID,PLACE,ACCESS_LOC,COUNTY,HAND_BEACH,HAND_PRKG,RESTRM,SHOWER,PARKING,ACESS_TYPE,KayakCanoeLaunch,BeachWheelchair,BWC_Info,BeachMat,ACCESSIBILITY_NOTES,COMMENT_,PARKING_OPTIONS,PRK_FEE',
+    returnGeometry: 'true',
+    outSR: '4326',
+    f: 'json'
+  });
+  const res = await fetch(`${NC_DCM_URL}?${params}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.features || [];
+}
+
+// ── WALKING ROUTE ─────────────────────────────────────────
+const STRAIGHT_LINE_THRESHOLD_FT = 150; // only truly beachfront (steps away)
+
+function drawStraightLine(toLng, toLat) {
+  const geojson = {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[currentLng, currentLat], [toLng, toLat]] }
+  };
+  map.addSource('route', { type: 'geojson', data: geojson });
+  map.addLayer({
+    id: 'route-casing',
+    type: 'line', source: 'route',
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.9 }
+  });
+  map.addLayer({
+    id: 'route',
+    type: 'line', source: 'route',
+    layout: { 'line-join': 'round', 'line-cap': 'round' },
+    paint: { 'line-color': '#0891b2', 'line-width': 4, 'line-dasharray': [2, 1.5] }
+  });
+  // Estimate walk time at 3mph / 4400 ft per min
+  const feet = distanceMiles(currentLat, currentLng, toLat, toLng) * 5280;
+  return (feet / 73.3) * 60; // seconds
+}
+
+async function drawRoute(toLng, toLat) {
+  if (!currentLng || !currentLat) return;
+
+  if (map.getLayer('route-casing')) map.removeLayer('route-casing');
+  if (map.getLayer('route')) map.removeLayer('route');
+  if (map.getSource('route')) map.removeSource('route');
+
+  const distFeet = distanceMiles(currentLat, currentLng, toLat, toLng) * 5280;
+
+  // Only use straight line if literally steps away (beachfront)
+  if (distFeet <= STRAIGHT_LINE_THRESHOLD_FT) {
+    return drawStraightLine(toLng, toLat);
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/walking/${currentLng},${currentLat};${toLng},${toLat}?geometries=geojson&overview=full&approaches=curb;unrestricted&access_token=${MAPBOX_TOKEN}`
+    );
+    const data = await res.json();
+    if (!data.routes || data.routes.length === 0) return drawStraightLine(toLng, toLat);
+
+    const route = data.routes[0];
+
+    const geojson = route.geometry;
+    const duration = route.duration;
+
+    map.addSource('route', { type: 'geojson', data: { type: 'Feature', geometry: geojson } });
+
+    map.addLayer({
+      id: 'route-casing',
+      type: 'line', source: 'route',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.9 }
+    });
+
+    map.addLayer({
+      id: 'route',
+      type: 'line', source: 'route',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#0891b2', 'line-width': 4, 'line-dasharray': [2, 1.5] }
+    });
+
+    return duration;
+  } catch (e) {
+    console.warn('Route fetch failed', e);
+    return drawStraightLine(toLng, toLat);
+  }
+}
+
+// ── MAP STYLE TOGGLE ──────────────────────────────────────
+let isSatellite = true;
+function toggleMapStyle() {
+  isSatellite = !isSatellite;
+  const btn = document.getElementById('style-toggle');
+
+  // Clear route layers before style swap (they won't survive it)
+  clearRoute();
+
+  map.setStyle(isSatellite
+    ? 'mapbox://styles/mapbox/satellite-streets-v12'
+    : 'mapbox://styles/mapbox/light-v11'
+  );
+
+  btn.innerHTML = isSatellite ? '🗺️ Switch to Map View' : '🛰️ Switch to Satellite View';
+}
+
+function clearRoute() {
+  if (map.getLayer('route-casing')) map.removeLayer('route-casing');
+  if (map.getLayer('route')) map.removeLayer('route');
+  if (map.getSource('route')) map.removeSource('route');
+}
+
+
+// ── SEARCH ────────────────────────────────────────────────
+// Core search logic — works from either text input or map click
+async function searchFromCoords(lng, lat, placeName) {
+  setLoading(true);
+  clearError();
+  clearMarkers();
+  clearRoute();
+  if (addressMarker) { addressMarker.remove(); addressMarker = null; }
+
+  try {
+    currentLat = lat;
+    currentLng = lng;
+
+    const { rentals, town } = getRentalsForPlace(placeName);
+    renderRentals(rentals, town);
+
+    addressMarker = new mapboxgl.Marker({ color: '#dc2626' })
+      .setLngLat([lng, lat])
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(placeName))
+      .addTo(map);
+
+    // Detect state: SC is south of ~34.5°N at the coast
+    const inSC = lat < 34.5 && lng < -78.4;
+    let beachData;
+    if (inSC) {
+      beachData = SC_BEACH_ACCESS;
+    } else {
+      if (!allBeachData) allBeachData = await fetchBeachData();
+      beachData = allBeachData;
+    }
+
+    const withDist = beachData.map(f => {
+      const [fLng, fLat] = [f.geometry.x, f.geometry.y];
+      return { ...f, miles: distanceMiles(lat, lng, fLat, fLng), fLat, fLng };
+    }).sort((a, b) => a.miles - b.miles);
+
+    const top20 = withDist.slice(0, 20);
+    lastResults = top20;
+
+    const url = new URL(window.location);
+    url.searchParams.set('address', document.getElementById('address-input').value || placeName);
+    window.history.replaceState({}, '', url);
+
+    document.getElementById('share-btn').classList.add('show');
+    document.getElementById('filters').style.display = 'flex';
+
+    renderResults(top20);
+
+    const bounds = new mapboxgl.LngLatBounds([lng, lat], [lng, lat]);
+    top20.slice(0, 2).forEach(f => bounds.extend([f.fLng, f.fLat]));
+    map.fitBounds(bounds, { padding: 100, maxZoom: 16 });
+
+  } catch (err) {
+    showError(err.message || 'Something went wrong. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function search() {
+  const address = document.getElementById('address-input').value.trim();
+  if (!address) return;
+
+  setLoading(true);
+  clearError();
+
+  try {
+    const geoRes = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?country=US&bbox=-84,32,-75.3,36.7&access_token=${MAPBOX_TOKEN}`
+    );
+    const geoData = await geoRes.json();
+    if (!geoData.features || geoData.features.length === 0) {
+      throw new Error('Address not found. Try a more specific NC or SC address, or click on the map.');
+    }
+
+    const [lng, lat] = geoData.features[0].center;
+    const placeName = geoData.features[0].place_name;
+    await searchFromCoords(lng, lat, placeName);
+
+  } catch (err) {
+    showError(err.message || 'Something went wrong. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── RENDER RESULTS ────────────────────────────────────────
+function renderResults(sites) {
+  let filtered = activeFilters.size > 0
+    ? sites.filter(s => [...activeFilters].every(f => hasAmenity(s, f)))
+    : sites;
+
+  lastFiltered = filtered;
+  clearMarkers();
+
+  const resultsDiv = document.getElementById('results');
+
+  if (filtered.length === 0) {
+    resultsDiv.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>No sites match your filters.<br>Try turning off some filters.</p></div>`;
+    return;
+  }
+
+  const nearestFt = Math.round(filtered[0].miles * 5280);
+  const isBeachfront = nearestFt < 100;
+
+  let html = isBeachfront
+    ? `<div style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;opacity:.85;margin-bottom:4px">🏖️ Beachfront property</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">You're already there</div>
+        <div style="font-size:12px;opacity:.9">This property is steps from the sand. Public access points and amenities are listed below.</div>
+      </div>`
+    : `<div class="results-header">${filtered.length} access points nearby</div>
+       <div style="font-size:12px;color:#0891b2;background:#e0f7ff;border-radius:8px;padding:8px 12px;margin-bottom:10px">
+         👆 Tap any card to see your walking route
+       </div>`;
+
+  function buildCard(site, i) {
+    const a = site.attributes;
+    const amenities = [
+      a.HAND_BEACH === 'Y' && '<span class="amenity accessible">♿ Accessible</span>',
+      a.RESTRM === 'Y'     && '<span class="amenity restroom">🚻 Restroom</span>',
+      a.SHOWER === 'Y'     && '<span class="amenity shower">🚿 Shower</span>',
+      a.KayakCanoeLaunch === 'Y' && '<span class="amenity kayak">🛶 Kayak</span>',
+      a.BeachWheelchair === 'Y'  && '<span class="amenity wheelchair">🦽 Wheelchair rental</span>',
+      a.PRK_FEE === 'Y'    && '<span class="amenity" style="background:#fff7ed;color:#c2410c">💰 Paid parking</span>',
+      a.PARKING > 0        && `<span class="amenity">🅿️ ${a.PARKING} spots</span>`,
+    ].filter(Boolean).join('');
+
+    return `
+      <div class="result-card" id="card-${i}" onclick="focusSite(${i})">
+        <div class="card-top">
+          <div class="card-rank">${i + 1}</div>
+          <div class="card-title">
+            <div class="card-name">${a.ACCESS_ID || 'Unnamed site'}</div>
+            <div class="card-loc">${[a.ACCESS_LOC, a.PLACE].filter(Boolean).join(' · ')}</div>
+          </div>
+        </div>
+        <div class="card-dist-row">
+          <span class="card-dist">${fmtDistance(site.miles)} · ${fmtSteps(site.miles)}</span>
+          <span class="card-county">${a.COUNTY}</span>
+        </div>
+        <div class="amenity-chips">${amenities}</div>
+        ${a.ACESS_TYPE === 'Community Access' ? `<div style="font-size:11px;color:#7c6f5e;background:#f5f2ee;border-radius:6px;padding:5px 8px;margin-top:6px">🏡 Community walkover — open to rental guests & owners</div>` : ''}
+        <div class="route-hint" id="hint-${i}"></div>
+      </div>`;
+  }
+
+  const SHOW_INITIALLY = 2;
+  const top = filtered.slice(0, SHOW_INITIALLY);
+  const rest = filtered.slice(SHOW_INITIALLY);
+
+  // When filters are active, refit map to the top filtered results
+  // so e.g. nearest accessible spot is always in view even if it's result #7
+  if (activeFilters.size > 0 && currentLat && currentLng && top.length > 0) {
+    const bounds = new mapboxgl.LngLatBounds([currentLng, currentLat], [currentLng, currentLat]);
+    top.forEach(s => bounds.extend([s.fLng, s.fLat]));
+    map.fitBounds(bounds, { padding: 100, maxZoom: 15, duration: 600 });
+  }
+
+  top.forEach((site, i) => { html += buildCard(site, i); });
+
+  if (rest.length > 0) {
+    html += `
+      <div id="more-cards" style="display:none">
+        ${rest.map((site, i) => buildCard(site, i + SHOW_INITIALLY)).join('')}
+      </div>
+      <button onclick="toggleMoreCards(this)" id="see-all-btn"
+        style="width:100%;margin-top:4px;padding:11px;background:white;color:#0369a1;
+               border:1.5px solid #bae6fd;border-radius:10px;font-size:12px;font-weight:600;
+               font-family:inherit;cursor:pointer;transition:all .15s;text-align:center">
+        🏖️ See all ${filtered.length} beach access points ▾
+      </button>`;
+  }
+
+  // Map markers for top 3 closest sites only
+  filtered.slice(0, 3).forEach((site, i) => {
+    const a = site.attributes;
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width: 28px; height: 28px; border-radius: 50%;
+      background: ${a.HAND_BEACH === 'Y' ? '#0d9488' : '#0891b2'};
+      border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 11px; font-weight: 700; cursor: pointer;
+    `;
+    el.textContent = i + 1;
+    el.addEventListener('click', (e) => { e.stopPropagation(); focusSite(i); });
+
+    const popup = new mapboxgl.Popup({ offset: 20, closeButton: false })
+      .setHTML(`<div style="font-size:13px"><strong>${a.ACCESS_ID || 'Beach Access'}</strong><br>${a.ACCESS_LOC || ''}<br><span style="color:#0891b2;font-weight:600">${fmtDistance(site.miles)} away</span></div>`);
+
+    const marker = new mapboxgl.Marker({ element: el })
+      .setLngLat([site.fLng, site.fLat])
+      .setPopup(popup)
+      .addTo(map);
+
+    activeMarkers.push(marker);
+  });
+
+  resultsDiv.innerHTML = html;
+  resultsDiv.scrollTop = 0;
+}
+
+function toggleMoreCards(btn) {
+  const more = document.getElementById('more-cards');
+  const expanded = more.style.display !== 'none';
+  more.style.display = expanded ? 'none' : 'block';
+  const total = lastFiltered.length || lastResults.length;
+  btn.textContent = expanded
+    ? `🏖️ See all ${total} beach access points ▾`
+    : `▴ Show fewer`;
+}
+
+// ── FOCUS SITE ────────────────────────────────────────────
+async function focusSite(i) {
+  const site = lastFiltered[i] || lastResults[i];
+  if (!site) return;
+
+  document.querySelectorAll('.result-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById(`card-${i}`);
+  if (card) card.classList.add('active');
+
+  clearRoute();
+  const hint = document.getElementById(`hint-${i}`);
+  if (hint) hint.textContent = '⏳ Getting walking route…';
+
+  const duration = await drawRoute(site.fLng, site.fLat);
+
+  if (duration !== null && duration !== undefined) {
+    const timeLabel = fmtWalkTime(duration);
+    if (hint) hint.innerHTML = `🚶 ${timeLabel} · <span style="color:#6b7280">${fmtDistance(site.miles)}</span>`;
+  } else {
+    if (hint) hint.textContent = '';
+  }
+
+  const bounds = new mapboxgl.LngLatBounds([currentLng, currentLat], [currentLng, currentLat]);
+  bounds.extend([site.fLng, site.fLat]);
+  map.fitBounds(bounds, { padding: 100, maxZoom: 15, duration: 800 });
+
+  // Clear any previously shown pill
+  if (activePill) { activePill.remove(); activePill = null; }
+
+  if (activeMarkers[i] && duration !== null && duration !== undefined) {
+    const anchor = (currentLat > site.fLat) ? 'top' : 'bottom';
+    const pill = new mapboxgl.Popup({ offset: 14, closeButton: false, anchor, className: 'walk-pill' })
+      .setHTML(`🏖️ ${fmtWalkTime(duration)}`);
+    activeMarkers[i].setPopup(pill);
+    pill.addTo(map);
+    activePill = pill;
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function clearMarkers() {
+  activeMarkers.forEach(m => m.remove());
+  activeMarkers = [];
+  if (activePill) { activePill.remove(); activePill = null; }
+}
+
+function setLoading(on) {
+  document.getElementById('loading').classList.toggle('show', on);
+  document.getElementById('search-btn').disabled = on;
+  if (on) document.getElementById('results').innerHTML = '';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg; el.classList.add('show');
+}
+
+function clearError() {
+  document.getElementById('error-msg').classList.remove('show');
+}
+
+function shareLink() {
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const btn = document.getElementById('share-btn');
+    btn.textContent = '✓ Link copied!';
+    setTimeout(() => { btn.textContent = '🔗 Copy shareable link'; }, 2000);
+  });
+}
+
+// ── AUTOCOMPLETE ──────────────────────────────────────────
+let autocompleteDebounce = null;
+let selectedIndex = -1;
+let suggestions = [];
+
+const input = document.getElementById('address-input');
+const dropdown = document.getElementById('autocomplete-list');
+
+input.addEventListener('input', () => {
+  clearTimeout(autocompleteDebounce);
+  const q = input.value.trim();
+  if (q.length < 3) { closeDropdown(); return; }
+  autocompleteDebounce = setTimeout(() => fetchSuggestions(q), 280);
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+      pickSuggestion(suggestions[selectedIndex]);
+    } else {
+      closeDropdown();
+      search();
+    }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+    highlightItem();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    selectedIndex = Math.max(selectedIndex - 1, -1);
+    highlightItem();
+  } else if (e.key === 'Escape') {
+    closeDropdown();
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-input-wrap')) closeDropdown();
+});
+
+async function fetchSuggestions(q) {
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?country=US&bbox=-84,32,-75.3,36.7&types=address,poi&limit=5&access_token=${MAPBOX_TOKEN}`
+    );
+    const data = await res.json();
+    suggestions = data.features || [];
+    renderDropdown();
+  } catch (e) { closeDropdown(); }
+}
+
+function renderDropdown() {
+  if (suggestions.length === 0) { closeDropdown(); return; }
+  selectedIndex = -1;
+  dropdown.innerHTML = suggestions.map((f, i) => {
+    const parts = f.place_name.split(',');
+    const main = parts[0];
+    const sub = parts.slice(1, 3).join(',').trim();
+    return `<div class="autocomplete-item" data-i="${i}" onmousedown="pickSuggestion(suggestions[${i}])">
+      <strong>${main}</strong><span>${sub}</span>
+    </div>`;
+  }).join('');
+  dropdown.classList.add('open');
+}
+
+function highlightItem() {
+  dropdown.querySelectorAll('.autocomplete-item').forEach((el, i) => {
+    el.classList.toggle('selected', i === selectedIndex);
+  });
+}
+
+function pickSuggestion(feature) {
+  input.value = feature.place_name;
+  closeDropdown();
+  search();
+}
+
+function closeDropdown() {
+  dropdown.classList.remove('open');
+  dropdown.innerHTML = '';
+  selectedIndex = -1;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+loadRentalsFromSheet();
+renderGear();
+
+function scrollRentals(dir) {
+  const grid = document.getElementById('rentals-list');
+  grid.scrollBy({ left: dir * 560, behavior: 'smooth' });
+}
+
+window.addEventListener('load', () => {
+  const address = new URLSearchParams(window.location.search).get('address');
+  if (address) { document.getElementById('address-input').value = address; search(); }
+});
+</script>
+</div><!-- end .page-wrap -->
+</body>
+</html>
