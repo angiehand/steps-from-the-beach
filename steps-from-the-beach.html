@@ -1478,18 +1478,16 @@ function shuffle(arr) {
 }
 
 async function loadRentalsFromSheet() {
-  const SHEET_ID = '1LfglYd8-GgRFbzEKhbocs4DffJXwUE-KxJWRbnL6iRM';
+  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFETCBw1TCzaHnvjkRpr8UZmdCH8p_H7-WRHx3OxYIWG-SyFoJkmkL7dfR2xc3d03mYNBx7zTeuyeV/pub?gid=0&single=true&output=csv';
   const container = document.getElementById('rentals-list');
   try {
     container.innerHTML = '<div style="padding:12px;font-size:11px;color:#94a3b8">Loading rentals…</div>';
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
-    const res = await fetch(url);
+    const res = await fetch(CSV_URL);
     const text = await res.text();
-    // Strip the Google wrapper: /*O_o*/ google.visualization.Query.setResponse({...});
-    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-    const cols = json.table.cols.map(c => c.label.toLowerCase());
-    allRentals = json.table.rows.map(row => {
-      return Object.fromEntries(cols.map((c, i) => [c, row.c[i]?.v ?? '']));
+    const rows = text.trim().split('\n').map(r => r.split(','));
+    const headers = rows[0].map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    allRentals = rows.slice(1).map(row => {
+      return Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim().replace(/"/g, '')]));
     });
     console.log('Rentals loaded:', allRentals);
     renderRentals();
