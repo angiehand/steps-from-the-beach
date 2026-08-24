@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Add a Property — Steps from the Beach</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f4f0; color: #0c1a2e; padding: 32px 20px 80px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px; margin-bottom: 6px; color: #0c1a2e;
+  }
+  .sub { font-size: 13px; color: #6b7060; margin-bottom: 28px; }
+
+  .card { background: #fff; border: 1px solid #e8e4de; border-radius: 14px; padding: 24px; margin-bottom: 22px; }
+  label { display: block; font-size: 12.5px; font-weight: 700; color: #4b5563; margin: 16px 0 5px; }
+  label:first-child { margin-top: 0; }
+  .hint { font-size: 11.5px; color: #94a3b8; font-weight: 400; margin-top: 2px; }
+  input[type=text], input[type=number], input[type=url], textarea, select {
+    width: 100%; padding: 9px 11px; border: 1px solid #d7d2ca; border-radius: 8px;
+    font-size: 13.5px; font-family: inherit; color: #0c1a2e; background: #fdfcfa;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+  .checkbox-row input { width: auto; }
+  .checkbox-row label { margin: 0; }
+
+  button {
+    font-family: inherit; font-weight: 700; font-size: 13.5px; border: none;
+    border-radius: 8px; padding: 11px 22px; cursor: pointer;
+  }
+  .btn-primary { background: #0891b2; color: #fff; margin-top: 20px; width: 100%; }
+  .btn-primary:hover { background: #0369a1; }
+  .btn-primary:disabled { background: #d0ccc5; cursor: not-allowed; }
+  .btn-delete { background: #fee2e2; color: #b91c1c; padding: 6px 12px; font-size: 12px; }
+  .btn-delete:hover { background: #fecaca; }
+
+  .status { font-size: 13px; margin-top: 12px; padding: 10px 12px; border-radius: 8px; display: none; }
+  .status.ok { display: block; background: #dcfce7; color: #166534; }
+  .status.err { display: block; background: #fee2e2; color: #b91c1c; }
+
+  .gate { max-width: 340px; margin: 80px auto; text-align: center; }
+  .gate input { text-align: center; }
+
+  .existing-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #f1f0ec; font-size: 13px;
+  }
+  .existing-item:last-child { border-bottom: none; }
+  .existing-name { font-weight: 600; }
+  .existing-meta { color: #94a3b8; font-size: 11.5px; }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="gate-wrap">
+  <div class="gate card">
+    <h1>Admin</h1>
+    <p class="sub">Enter the admin password to add or manage properties.</p>
+    <input type="text" id="password-input" placeholder="Password" autofocus />
+    <button class="btn-primary" id="unlock-btn" style="margin-top:14px;">Unlock</button>
+    <div class="status" id="gate-status"></div>
+  </div>
+</div>
+
+<div class="wrap" id="admin-wrap" style="display:none;">
+  <h1>Add a Property</h1>
+  <p class="sub">Fills in the featured-properties list on the matching beach page.</p>
+
+  <div class="card">
+    <form id="property-form">
+      <label>Beach</label>
+      <select id="beach" required>
+        <option value="kiawah-island">Kiawah Island</option>
+        <option value="seabrook-island">Seabrook Island</option>
+      </select>
+
+      <label>Property name</label>
+      <input type="text" id="name" required placeholder="e.g. Oceanfront East Beach Retreat" />
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="oceanfront" />
+        <label for="oceanfront" style="margin:0;">Oceanfront (reaches sand via a private walkway, not a community boardwalk)</label>
+      </div>
+
+      <label>Latitude / Longitude <span class="hint">— skip if oceanfront; used to verify distance to the nearest beach access</span></label>
+      <div class="row">
+        <div><input type="text" id="lat" placeholder="Latitude, e.g. 32.6076" /></div>
+        <div><input type="text" id="lng" placeholder="Longitude, e.g. -80.0940" /></div>
+      </div>
+
+      <label>Beds / Baths / Sleeps</label>
+      <div class="row">
+        <div><input type="number" id="beds" min="0" placeholder="Beds" /></div>
+        <div><input type="number" id="baths" min="0" placeholder="Baths" /></div>
+        <div><input type="number" id="sleeps" min="0" placeholder="Sleeps" /></div>
+      </div>
+
+      <label>Vibe <span class="hint">— one short line of style/feel</span></label>
+      <input type="text" id="vibe" placeholder="e.g. Lowcountry coastal — sea-glass blues & greens" />
+
+      <label>Tag <span class="hint">— shows as a small badge on the card, e.g. Oceanfront, Featured</span></label>
+      <input type="text" id="tag" placeholder="Featured" />
+
+      <label>Description</label>
+      <textarea id="desc" placeholder="A few sentences about what makes this place worth featuring."></textarea>
+
+      <label>Features <span class="hint">— comma-separated, e.g. Private pool, Golf cart included, Ocean views</span></label>
+      <input type="text" id="features" placeholder="Private pool, Golf cart included, Ocean views" />
+
+      <label>Photo</label>
+      <input type="file" id="photo" accept="image/*" />
+
+      <label>VRBO / Airbnb link</label>
+      <input type="url" id="link" placeholder="https://www.vrbo.com/..." />
+
+      <button class="btn-primary" type="submit" id="submit-btn">Add property</button>
+      <div class="status" id="form-status"></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:17px;margin-bottom:10px;">Current properties on this beach</h2>
+    <div id="existing-list">Loading…</div>
+  </div>
+</div>
+
+<script>
+let ADMIN_PASSWORD = '';
+
+const gateWrap = document.getElementById('gate-wrap');
+const adminWrap = document.getElementById('admin-wrap');
+const gateStatus = document.getElementById('gate-status');
+
+document.getElementById('unlock-btn').addEventListener('click', unlock);
+document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+
+function unlock() {
+  const pw = document.getElementById('password-input').value;
+  if (!pw) return;
+  ADMIN_PASSWORD = pw;
+  gateWrap.style.display = 'none';
+  adminWrap.style.display = 'block';
+  loadExisting();
+}
+
+function showStatus(el, ok, message) {
+  el.className = 'status ' + (ok ? 'ok' : 'err');
+  el.textContent = message;
+}
+
+async function loadExisting() {
+  const beach = document.getElementById('beach').value;
+  const listEl = document.getElementById('existing-list');
+  listEl.textContent = 'Loading…';
+  try {
+    const res = await fetch(`/api/properties?beach=${encodeURIComponent(beach)}`);
+    const rows = await res.json();
+    if (!rows.length) {
+      listEl.innerHTML = '<p style="font-size:13px;color:#94a3b8;">No properties added for this beach yet.</p>';
+      return;
+    }
+    listEl.innerHTML = rows.map(p => `
+      <div class="existing-item">
+        <div>
+          <div class="existing-name">${p.name}</div>
+          <div class="existing-meta">Sleeps ${p.sleeps ?? '?'} · ${p.tag || ''}</div>
+        </div>
+        <button class="btn-delete" data-id="${p.id}">Delete</button>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteProperty(btn.dataset.id));
+    });
+  } catch (e) {
+    listEl.innerHTML = '<p style="font-size:13px;color:#b91c1c;">Could not load properties.</p>';
+  }
+}
+
+async function deleteProperty(id) {
+  if (!confirm('Delete this property?')) return;
+  const res = await fetch(`/api/properties/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-password': ADMIN_PASSWORD },
+  });
+  if (res.status === 401) {
+    alert('Wrong password — refresh the page and try again.');
+    return;
+  }
+  loadExisting();
+}
+
+document.getElementById('beach').addEventListener('change', loadExisting);
+
+document.getElementById('property-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const submitBtn = document.getElementById('submit-btn');
+  const statusEl = document.getElementById('form-status');
+  submitBtn.disabled = true;
+  statusEl.style.display = 'none';
+
+  try {
+    let imgKey = null;
+    const photoFile = document.getElementById('photo').files[0];
+    if (photoFile) {
+      const form = new FormData();
+      form.append('photo', photoFile);
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'x-admin-password': ADMIN_PASSWORD },
+        body: form,
+      });
+      if (uploadRes.status === 401) throw new Error('Wrong password');
+      if (!uploadRes.ok) throw new Error('Photo upload failed');
+      const uploadData = await uploadRes.json();
+      imgKey = uploadData.key;
+    }
+
+    const body = {
+      beach: document.getElementById('beach').value,
+      name: document.getElementById('name').value,
+      oceanfront: document.getElementById('oceanfront').checked,
+      lat: document.getElementById('lat').value ? parseFloat(document.getElementById('lat').value) : null,
+      lng: document.getElementById('lng').value ? parseFloat(document.getElementById('lng').value) : null,
+      beds: document.getElementById('beds').value || null,
+      baths: document.getElementById('baths').value || null,
+      sleeps: document.getElementById('sleeps').value || null,
+      vibe: document.getElementById('vibe').value,
+      tag: document.getElementById('tag').value,
+      desc: document.getElementById('desc').value,
+      features: document.getElementById('features').value.split(',').map(f => f.trim()).filter(Boolean),
+      imgKey,
+      affiliateLink: document.getElementById('link').value || '#',
+    };
+
+    const res = await fetch('/api/properties', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) throw new Error('Wrong password');
+    if (!res.ok) throw new Error('Could not save property');
+
+    showStatus(statusEl, true, 'Property added! It’s now live on the beach page.');
+    document.getElementById('property-form').reset();
+    loadExisting();
+  } catch (err) {
+    showStatus(statusEl, false, err.message || 'Something went wrong.');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

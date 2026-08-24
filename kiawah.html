@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Steps from the Beach — Kiawah Island Rentals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { margin: 0; padding: 0; overflow-x: hidden; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f4f0;
+      color: #0c1a2e;
+    }
+    .page-wrap { max-width: 1280px; width: 100%; margin: 0 auto; }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      background: #fff; border-bottom: 1px solid #e8edf2;
+      padding: 0 28px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .wordmark {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700; font-size: 22px; letter-spacing: 0.3px; color: #0891b2;
+      text-decoration: none;
+    }
+    .top-bar nav { display: flex; gap: 18px; }
+    .top-bar nav a {
+      font-size: 12px; font-weight: 600; color: #64748b; text-decoration: none;
+      padding: 6px 10px; border-radius: 8px;
+    }
+    .top-bar nav a.active { color: #0369a1; background: #e0f7ff; }
+
+    /* ── HERO ── */
+    .hero {
+      background: #f7f5f0; border-bottom: 1px solid #e8e4de;
+      padding: 44px 24px 32px; text-align: center;
+    }
+    .hero .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #0891b2; margin-bottom: 10px; display: block;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700; font-size: 36px; color: #0c1a2e; line-height: 1.15;
+    }
+    .hero .tagline {
+      font-size: 15px; color: #6b7060; margin-top: 12px; max-width: 560px;
+      margin-left: auto; margin-right: auto; line-height: 1.6;
+    }
+    .hero .verify-note {
+      font-size: 12px; color: #0369a1; margin-top: 14px; font-weight: 600;
+    }
+
+    /* ── PROPERTIES LIST ── */
+    .properties-section { padding: 40px 24px 56px; }
+    .properties-header { margin-bottom: 22px; }
+    .properties-header h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px; font-weight: 700; color: #1c2118;
+    }
+    .properties-header p { font-size: 13px; color: #a89e92; margin-top: 4px; }
+
+    .properties-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .property-card {
+      background: #fff; border: 1px solid #e8e4de; border-radius: 16px;
+      overflow: hidden; transition: all 0.18s;
+      display: flex; flex-direction: row; width: 100%;
+    }
+    .property-card:hover { box-shadow: 0 8px 24px rgba(8,145,178,0.14); }
+    .property-card.placeholder { opacity: 0.88; border-style: dashed; }
+    .property-img-wrap { position: relative; flex: 0 0 380px; }
+    .property-img { width: 100%; height: 100%; min-height: 240px; object-fit: cover; display: block; background: #e8e4de; }
+    .property-tag {
+      position: absolute; top: 12px; left: 12px;
+      background: rgba(255,255,255,0.92); color: #c67c00;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 4px 9px; border-radius: 6px;
+    }
+    .property-body { padding: 22px 26px; flex: 1; display: flex; flex-direction: column; }
+    .property-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px; font-weight: 700; color: #1c2118; line-height: 1.3;
+    }
+    .property-meta { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .property-vibe {
+      font-size: 13px; font-weight: 600; color: #0891b2; margin-top: 10px;
+      font-style: italic;
+    }
+    .property-desc { font-size: 13.5px; color: #4b5563; line-height: 1.65; margin-top: 8px; max-width: 60ch; }
+
+    .feature-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .feature-chip {
+      font-size: 11px; font-weight: 600; color: #5b21b6;
+      background: #ede9fe; padding: 4px 10px; border-radius: 20px;
+    }
+
+    .property-distance {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 700; color: #0369a1;
+      background: #e0f7ff; padding: 6px 11px; border-radius: 20px;
+      margin-top: 14px; width: fit-content;
+    }
+    .property-distance.tbd { color: #94a3b8; background: #f1f5f9; font-weight: 600; }
+
+    .property-bottom { margin-top: auto; padding-top: 16px; display: flex; }
+    .property-btn {
+      display: inline-block; padding: 10px 22px; background: #0891b2; color: #fff;
+      font-size: 13px; font-weight: 700; border-radius: 8px; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .property-btn:hover { background: #0369a1; }
+    .property-btn.disabled { background: #d0ccc5; pointer-events: none; }
+
+    @media (max-width: 640px) {
+      .property-card { flex-direction: column; }
+      .property-img-wrap { flex: none; }
+      .property-img { height: 220px; min-height: 0; }
+    }
+
+    footer {
+      text-align: center; padding: 28px 20px; font-size: 11px; color: #a89e92;
+      border-top: 1px solid #e8e4de;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <header class="top-bar">
+    <a class="wordmark" href="#">Steps from the Beach</a>
+    <nav>
+      <a href="#" class="active">Kiawah Island</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <span class="eyebrow">Kiawah Island, SC</span>
+    <h1>The most beautiful stays on Kiawah — verified close to the sand.</h1>
+    <p class="tagline">Kiawah is a private, gated island — every home here reaches the beach through a community boardwalk, not a public parking lot. We hand-pick the places worth booking and check the walk to the nearest real access point ourselves.</p>
+    <p class="verify-note">📍 Distances verified against Kiawah's actual community boardwalks, so you always know what to expect.</p>
+  </div>
+
+  <section class="properties-section">
+    <div class="properties-header">
+      <h2 id="properties-heading">Featured Kiawah Properties</h2>
+      <p>Hand-picked for design, not just proximity — smallest to largest</p>
+    </div>
+    <div class="properties-grid" id="properties-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <footer>
+    Steps from the Beach · Kiawah access-point data hand-verified, Charleston County · Rentals link out to VRBO/Airbnb
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ✏️  GOOGLE SHEET — same published sheet as before.
+// Add a row with town = "Kiawah Island" (and lat/lng/beds/baths/
+// sleeps/desc/affiliate_link columns) to have it appear here
+// automatically, no code edits needed.
+// ═══════════════════════════════════════════════════════════
+const RENTALS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSFETCBw1TCzaHnvjkRpr8UZmdCH8p_H7-WRHx3OxYIWG-SyFoJkmkL7dfR2xc3d03mYNBx7zTeuyeV/pub?gid=0&single=true&output=csv';
+
+// ═══════════════════════════════════════════════════════════
+// Kiawah's real, hand-verified beach access boardwalks
+// (Charleston County / community access — Kiawah has no public
+// state GIS layer, so this list is manually maintained).
+// ═══════════════════════════════════════════════════════════
+const KIAWAH_ACCESS = [
+  // ── KIAWAH ISLAND ──────────────────────────────────────
+  // Public park (only public beach access on island)
+  { geometry: { x: -80.1681, y: 32.6017 }, attributes: {
+    ACCESS_ID: 'Beachwalker County Park', PLACE: 'Kiawah Island', ACCESS_LOC: 'West end — 8 Beachwalker Dr (public access)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'Y', PARKING: 150, PRK_FEE: 'Y',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'Y', ACESS_TYPE: 'County Park'
+  }},
+  // West Beach Village — Boardwalks 1–15 (community access for residents, guests & renters)
+  { geometry: { x: -80.1640, y: 32.6025 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #1', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Duneside Villas / Inlet Cove / Sparrow Pond area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1600, y: 32.6030 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #2', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Duneside Villas / Sparrow Pond area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1480, y: 32.6038 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #5', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Shipwatch Villas (private to community)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1440, y: 32.6042 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #6', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Shipwatch Villas (private to community)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1400, y: 32.6046 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #7', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Seascape Villas area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1362, y: 32.6050 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #8A', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — high-density ramp (Eugenia Ave west end)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1330, y: 32.6052 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #8B', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — high-density switchback ramp',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1300, y: 32.6055 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #9', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1270, y: 32.6057 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #10', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave between #41 & #43A (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1230, y: 32.6059 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #12', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Eugenia Ave (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1195, y: 32.6061 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #13', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — mid Eugenia Ave area (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1160, y: 32.6063 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #14', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — Oceanwoods / Low Oak Woods area (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1125, y: 32.6065 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #15', PLACE: 'Kiawah Island', ACCESS_LOC: 'West Beach — east end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.1085, y: 32.6067 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #16', PLACE: 'Kiawah Island', ACCESS_LOC: 'West/East Beach boundary — ramp',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // East Beach Village — Boardwalks 16–30
+  { geometry: { x: -80.1001, y: 32.6070 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #17', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Mariners Watch / Night Heron Park area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'Y', SHOWER: 'N', PARKING: 80, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0975, y: 32.6072 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #18', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Mariners Watch / Windswept Villas area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0943, y: 32.6074 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #19', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas (near Sanctuary Hotel)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0910, y: 32.6076 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #20', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0878, y: 32.6078 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #21', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept Villas (high-density)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0848, y: 32.6080 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #22', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Windswept / Parkside Villas (switchback ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0752, y: 32.6085 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #27', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Tennis Club / Turtle Cove Villas (switchback ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0726, y: 32.6088 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #28', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Turtle Point / Atlantic Beach Homes',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0704, y: 32.6090 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #29', PLACE: 'Kiawah Island', ACCESS_LOC: 'East Beach — Turtle Point / Atlantic Beach Homes',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 30, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  // Vanderhorst Plantation — Boardwalks 30–42 (exclusive gated area, east end)
+  { geometry: { x: -80.0670, y: 32.6092 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #31', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation — west end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0648, y: 32.6095 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #32', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation (shower station)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'Y', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0626, y: 32.6098 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #33', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0604, y: 32.6101 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #34', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Plantation',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0582, y: 32.6104 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #35', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst Beach area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0549, y: 32.6108 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #38', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — east end (stairs)',
+    COUNTY: 'Charleston', HAND_BEACH: 'N', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0527, y: 32.6110 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #39', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — east end (ramp)',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+  { geometry: { x: -80.0505, y: 32.6113 }, attributes: {
+    ACCESS_ID: 'Kiawah Boardwalk #40', PLACE: 'Kiawah Island', ACCESS_LOC: 'Vanderhorst — Ocean Marsh Dr / Ocean Course area',
+    COUNTY: 'Charleston', HAND_BEACH: 'Y', RESTRM: 'N', SHOWER: 'N', PARKING: 20, PRK_FEE: 'N',
+    KayakCanoeLaunch: 'N', BeachWheelchair: 'N', ACESS_TYPE: 'Community Access'
+  }},
+];
+
+// ── DISTANCE HELPERS ─────────────────────────────────────
+function distanceMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+function fmtDistance(miles) {
+  const feet = Math.round(miles * 5280);
+  return feet < 1000 ? `${feet} ft` : `${miles.toFixed(1)} mi`;
+}
+function fmtWalk(miles) {
+  const mins = Math.max(1, Math.round(miles * 20)); // ~20 min/mile walking pace
+  return `~${mins} min walk`;
+}
+
+// Find the nearest verified Kiawah beach access boardwalk to a lat/lng
+function nearestAccess(lat, lng) {
+  let best = null, bestDist = Infinity;
+  for (const site of KIAWAH_ACCESS) {
+    const d = distanceMiles(lat, lng, site.geometry.y, site.geometry.x);
+    if (d < bestDist) { bestDist = d; best = site; }
+  }
+  return { site: best, miles: bestDist };
+}
+
+// ═══════════════════════════════════════════════════════════
+// ✏️  PLACEHOLDER PROPERTIES
+// Replace these with real listings, or add rows to the Google
+// Sheet (town = "Kiawah Island") and they'll load automatically
+// alongside these. Each needs a real lat/lng so the distance-
+// to-beach can be verified — use Mapbox/Google to geocode the
+// address once, then hardcode the coordinates here or in the sheet.
+// ═══════════════════════════════════════════════════════════
+const PLACEHOLDER_PROPERTIES = [
+  {
+    // Real listing, added from https://www.vrbo.com/4106989 — exact
+    // address not public on the listing page, so no lat/lng yet.
+    // Oceanfront, so distance is shown as "private beach access"
+    // rather than a boardwalk figure. Beds/baths/sleeps and the
+    // description confirmed by Angie 2026-08-24.
+    name: 'Oceanfront East Beach Retreat',
+    oceanfront: true,
+    beds: 3, baths: 3, sleeps: 8,
+    vibe: 'Lowcountry coastal — sea-glass blues & greens, natural wood, woven textures',
+    tag: 'Oceanfront',
+    desc: 'The oceanfront setting is the star, but the light, bright interiors make this one a standout — just enough color, that incredible ocean right outside the windows.',
+    features: ['Oceanfront', 'Ocean-view sunroom', 'Private balcony'],
+    img: 'images/oceanfront-east-beach-sunroom.png',
+    affiliateLink: 'https://www.vrbo.com/4106989'
+  },
+  {
+    name: '[Property name — West Beach Villa]',
+    lat: 32.6032, lng: -80.1610,
+    sleeps: 6,
+    vibe: 'Coastal-chic, light & airy',
+    tag: 'Placeholder',
+    desc: 'Example card — swap in a real West Beach property.',
+    features: ['Screened porch', 'Newly renovated', 'Short walk to boardwalk'],
+    img: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&q=80',
+    affiliateLink: '#'
+  },
+  {
+    name: '[Property name — East Beach Cottage]',
+    lat: 32.6076, lng: -80.0940,
+    sleeps: 8,
+    vibe: 'Bright & breezy, family-friendly',
+    tag: 'Placeholder',
+    desc: 'Example card — swap in a real East Beach property.',
+    features: ['Private pool', 'Golf cart included', 'Near Night Heron Park'],
+    img: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80',
+    affiliateLink: '#'
+  },
+  {
+    name: '[Property name — Vanderhorst Retreat]',
+    lat: 32.6100, lng: -80.0600,
+    sleeps: 10,
+    vibe: 'Quiet, elevated, design-forward',
+    tag: 'Placeholder',
+    desc: 'Example card — swap in a real Vanderhorst property.',
+    features: ['Ocean views', 'Chef\'s kitchen', 'Steps to Ocean Course'],
+    img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+    affiliateLink: '#'
+  }
+];
+
+let allProperties = [...PLACEHOLDER_PROPERTIES];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Try loading real Kiawah rows from the shared Google Sheet.
+// Expected columns (extra ones are ignored, missing ones are OK):
+// name, town, lat, lng, sleeps, vibe, features (semicolon-separated,
+// e.g. "Private pool; Golf cart included"), tag, desc, img, link,
+// oceanfront (put "yes" — skips the boardwalk-distance calc since
+// oceanfront homes have their own private beach walkway, not a
+// community boardwalk; lat/lng can be left blank for these until
+// you have an exact address)
+async function loadKiawahFromSheet() {
+  try {
+    const res = await fetch(RENTALS_SHEET_URL);
+    const text = await res.text();
+    const rows = text.trim().split('\n').map(r => r.split(','));
+    const headers = rows[0].map(h => h.trim().toLowerCase().replace(/"/g, ''));
+    const parsed = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, (row[i] ?? '').trim().replace(/"/g, '')])));
+    const kiawahRows = parsed.filter(r => (r.town || '').toLowerCase() === 'kiawah island');
+    const mapped = kiawahRows
+      .filter(r => (r.lat && r.lng) || (r.oceanfront || '').toLowerCase() === 'yes') // need coords, UNLESS oceanfront
+      .map(r => ({
+        name: r.name, lat: r.lat ? parseFloat(r.lat) : null, lng: r.lng ? parseFloat(r.lng) : null,
+        beds: r.beds || null, baths: r.baths || null, sleeps: r.sleeps, vibe: r.vibe || '',
+        oceanfront: (r.oceanfront || '').toLowerCase() === 'yes',
+        features: (r.features || '').split(';').map(f => f.trim()).filter(Boolean),
+        tag: r.tag || 'Featured', desc: r.desc || '',
+        img: r.img, affiliateLink: r.link || '#'
+      }));
+    if (mapped.length) {
+      allProperties = [...mapped, ...PLACEHOLDER_PROPERTIES];
+      renderProperties();
+    }
+  } catch (e) {
+    console.warn('Could not load Kiawah rentals from sheet (using placeholders only):', e);
+  }
+}
+
+// ── RENDER PROPERTY CARDS ────────────────────────────────
+// Sorted smallest-to-largest by sleeps count so the size mix is
+// visible just by scanning down the page — no filter UI needed
+// while the list is small. Properties with an unknown sleeps
+// count (e.g. '?') sort to the end.
+function sortedBySleeps(list) {
+  return [...list].sort((a, b) => {
+    const sa = parseInt(a.sleeps, 10), sb = parseInt(b.sleeps, 10);
+    const va = isNaN(sa) ? Infinity : sa;
+    const vb = isNaN(sb) ? Infinity : sb;
+    return va - vb;
+  });
+}
+
+function renderProperties() {
+  const grid = document.getElementById('properties-grid');
+  grid.innerHTML = sortedBySleeps(allProperties).map(p => {
+    const isPlaceholder = p.tag === 'Placeholder';
+    let distHtml;
+    if (p.oceanfront) {
+      // Oceanfront homes reach the sand via their own private walkway,
+      // not one of the community boardwalks — don't force a boardwalk
+      // distance onto these, it would be the wrong number.
+      distHtml = `<span class="property-distance">🌊 Oceanfront — private beach access</span>`;
+    } else if (p.lat && p.lng) {
+      const { site, miles } = nearestAccess(p.lat, p.lng);
+      distHtml = site
+        ? `<span class="property-distance${isPlaceholder ? ' tbd' : ''}">📍 ${fmtDistance(miles)} to ${site.attributes.ACCESS_ID} · ${fmtWalk(miles)}</span>`
+        : `<span class="property-distance tbd">📍 Distance coming soon</span>`;
+    } else {
+      distHtml = `<span class="property-distance tbd">📍 Distance coming soon — need exact address</span>`;
+    }
+    const linkDisabled = !p.affiliateLink || p.affiliateLink === '#';
+    const featuresHtml = (p.features || []).length
+      ? `<div class="feature-chips">${p.features.map(f => `<span class="feature-chip">${f}</span>`).join('')}</div>`
+      : '';
+    return `
+      <div class="property-card${isPlaceholder ? ' placeholder' : ''}">
+        <div class="property-img-wrap">
+          <img class="property-img" src="${p.img}" alt="${p.name}" onerror="this.style.background='#e8e4de'" />
+          <span class="property-tag">${p.tag}</span>
+        </div>
+        <div class="property-body">
+          <div class="property-name">${p.name}</div>
+          <div class="property-meta">${p.beds && p.baths ? `${p.beds} BR · ${p.baths} BA · ` : ''}Sleeps ${p.sleeps}</div>
+          ${p.vibe ? `<div class="property-vibe">${p.vibe}</div>` : ''}
+          ${p.desc ? `<div class="property-desc">${p.desc}</div>` : ''}
+          ${featuresHtml}
+          ${distHtml}
+          <div class="property-bottom">
+            <a class="property-btn${linkDisabled ? ' disabled' : ''}" href="${p.affiliateLink}" target="_blank" rel="noopener sponsored">
+              ${linkDisabled ? 'Link coming soon' : 'See full details & book on VRBO →'}
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────
+renderProperties();
+loadKiawahFromSheet();
+</script>
+</body>
+</html>
