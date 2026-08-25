@@ -34,21 +34,23 @@
 
     /* ── HERO ── */
     .hero {
-      background: #f7f5f0; border-bottom: 1px solid #e8e4de;
-      padding: 72px 24px 56px; text-align: center;
-    }
-    .hero .eyebrow {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      color: #0891b2; margin-bottom: 14px; display: block;
+      position: relative;
+      background: linear-gradient(to bottom, rgba(12,26,46,0.32) 0%, rgba(12,26,46,0.55) 100%),
+                  url('images/kiawah-dunes-hero.jpg');
+      background-size: cover; background-position: center 65%;
+      padding: 100px 24px 84px; text-align: center;
+      min-height: 460px; display: flex; flex-direction: column; justify-content: center;
     }
     .hero h1 {
       font-family: 'Playfair Display', Georgia, serif;
-      font-weight: 700; font-size: 44px; color: #0c1a2e; line-height: 1.15;
-      max-width: 720px; margin: 0 auto;
+      font-weight: 700; font-size: 46px; color: #fff; line-height: 1.15;
+      max-width: 760px; margin: 0 auto;
+      text-shadow: 0 2px 16px rgba(0,0,0,0.35);
     }
     .hero .tagline {
-      font-size: 16px; color: #6b7060; margin-top: 18px; max-width: 540px;
+      font-size: 16.5px; color: rgba(255,255,255,0.92); margin-top: 18px; max-width: 560px;
       margin-left: auto; margin-right: auto; line-height: 1.65;
+      text-shadow: 0 1px 10px rgba(0,0,0,0.35);
     }
 
     /* ── HOW IT WORKS ── */
@@ -172,7 +174,7 @@
     <div class="beaches-grid">
 
       <a class="beach-card live" href="kiawah.html">
-        <img class="beach-img" src="https://images.unsplash.com/photo-1519046904884-53103b34b206?w=900&q=80" alt="Kiawah Island" />
+        <img class="beach-img" src="images/kiawah-sunset-dock.jpg" alt="Kiawah Island" />
         <div class="beach-overlay">
           <div class="beach-state">South Carolina</div>
           <div class="beach-name">Kiawah Island</div>
@@ -182,7 +184,7 @@
       </a>
 
       <div class="beach-card coming-soon">
-        <img class="beach-img" src="https://images.unsplash.com/photo-1519046904884-53103b34b206?w=900&q=80" alt="Seabrook Island" style="filter:grayscale(40%);" />
+        <img class="beach-img" src="images/seabrook-boardwalk.jpg" alt="Seabrook Island" style="filter:grayscale(40%);" />
         <span class="coming-soon-badge">Coming soon</span>
         <div class="beach-overlay">
           <div class="beach-state">South Carolina</div>
