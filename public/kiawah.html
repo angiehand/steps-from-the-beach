@@ -493,20 +493,6 @@ function renderProperties() {
   const grid = document.getElementById('properties-grid');
   grid.innerHTML = sortedBySleeps(allProperties).map(p => {
     const isPlaceholder = p.tag === 'Placeholder';
-    let distHtml;
-    if (p.oceanfront) {
-      // Oceanfront homes reach the sand via their own private walkway,
-      // not one of the community boardwalks — don't force a boardwalk
-      // distance onto these, it would be the wrong number.
-      distHtml = `<span class="property-distance">🌊 Oceanfront — private beach access</span>`;
-    } else if (p.lat && p.lng) {
-      const { site, miles } = nearestAccess(p.lat, p.lng);
-      distHtml = site
-        ? `<span class="property-distance${isPlaceholder ? ' tbd' : ''}">📍 ${fmtDistance(miles)} to ${site.attributes.ACCESS_ID} · ${fmtWalk(miles)}</span>`
-        : `<span class="property-distance tbd">📍 Distance coming soon</span>`;
-    } else {
-      distHtml = `<span class="property-distance tbd">📍 Distance coming soon — need exact address</span>`;
-    }
     const linkDisabled = !p.affiliateLink || p.affiliateLink === '#';
     const featuresHtml = (p.features || []).length
       ? `<div class="feature-chips">${p.features.map(f => `<span class="feature-chip">${f}</span>`).join('')}</div>`
@@ -523,7 +509,6 @@ function renderProperties() {
           ${p.vibe ? `<div class="property-vibe">${p.vibe}</div>` : ''}
           ${p.desc ? `<div class="property-desc">${p.desc}</div>` : ''}
           ${featuresHtml}
-          ${distHtml}
           <div class="property-bottom">
             <a class="property-btn${linkDisabled ? ' disabled' : ''}" href="${p.affiliateLink}" target="_blank" rel="noopener sponsored">
               ${linkDisabled ? 'Link coming soon' : 'View listing & book →'}
