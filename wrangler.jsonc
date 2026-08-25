@@ -11,9 +11,7 @@
     {
       "binding": "DB",
       "database_name": "steps-from-the-beach-db",
-      // Fill this in after creating the D1 database in the Cloudflare dashboard
-      // (Storage & databases → D1 → Create database). Copy its "Database ID".
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "739b471a-d423-4baf-9fcb-11cf210e1bb1"
     }
   ],
   "r2_buckets": [
