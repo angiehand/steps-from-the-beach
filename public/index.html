@@ -33,30 +33,37 @@
     }
     .top-bar nav a:hover { color: #4a6d94; }
 
-    /* ── HERO ── */
+    /* ── HERO (split-screen: text panel + photo, side by side) ── */
     .hero {
-      position: relative;
-      background: linear-gradient(to bottom, rgba(31,47,66,0.10) 0%, rgba(31,47,66,0.38) 100%),
-                  url('images/kiawah-dunes-hero.jpg');
-      background-size: cover; background-position: center 65%;
-      padding: 96px 24px 76px; text-align: center;
-      min-height: 440px; display: flex; flex-direction: column; justify-content: center;
+      display: flex;
+      min-height: 460px;
+    }
+    .hero-text {
+      flex: 0 0 42%;
+      background: #e3ebf1;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 0 56px;
+    }
+    .hero-photo {
+      flex: 1;
+      background: url('images/kiawah-dunes-hero.jpg');
+      background-size: cover; background-position: center 60%;
     }
     .hero .eyebrow {
       font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255,255,255,0.88); margin-bottom: 16px;
-      text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+      color: #6f8caa; margin-bottom: 16px;
     }
     .hero h1 {
       font-family: 'Playfair Display', Georgia, serif;
-      font-weight: 700; font-size: 44px; color: #fff; line-height: 1.18;
-      max-width: 720px; margin: 0 auto;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.45);
+      font-weight: 700; font-size: 34px; color: #24384d; line-height: 1.2;
     }
     .hero .tagline {
-      font-size: 16px; color: rgba(255,255,255,0.96); margin-top: 18px; max-width: 540px;
-      margin-left: auto; margin-right: auto; line-height: 1.65;
-      text-shadow: 0 1px 12px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.45);
+      font-size: 15px; color: #5c6b7d; margin-top: 16px; line-height: 1.65;
+    }
+    @media (max-width: 760px) {
+      .hero { flex-direction: column; min-height: 0; }
+      .hero-text { padding: 40px 28px; text-align: center; }
+      .hero-photo { height: 260px; }
     }
 
     /* ── BEACHES SECTION ── */
@@ -154,9 +161,12 @@
   </header>
 
   <div class="hero">
-    <span class="eyebrow">South Carolina Lowcountry</span>
-    <h1>The prettiest places to stay, steps from the beach.</h1>
-    <p class="tagline">We hand-pick the most beautifully designed rentals at each beach and verify exactly how close they really are to the sand. Then you head to the listing for the details and booking.</p>
+    <div class="hero-text">
+      <span class="eyebrow">South Carolina Lowcountry</span>
+      <h1>The prettiest places to stay, steps from the beach.</h1>
+      <p class="tagline">We hand-pick the most beautifully designed rentals at each beach and verify exactly how close they really are to the sand. Then you head to the listing for the details and booking.</p>
+    </div>
+    <div class="hero-photo"></div>
   </div>
 
   <section class="beaches-section" id="beaches">
