@@ -108,8 +108,15 @@
       font-size: 12.5px; font-weight: 600; color: #4a6d94; margin-top: 8px;
       font-style: italic;
     }
-    .property-desc {
-      font-size: 13px; color: #5c6b7d; line-height: 1.6; margin-top: 8px;
+    .property-favorite {
+      margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef2f6;
+    }
+    .property-favorite-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #4a6d94; display: block; margin-bottom: 3px;
+    }
+    .property-favorite-text {
+      font-size: 13px; color: #5c6b7d; line-height: 1.55;
       display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
 
@@ -407,7 +414,7 @@ const PLACEHOLDER_PROPERTIES = [
     beds: 3, baths: 3, sleeps: 8,
     vibe: 'Lowcountry coastal — sea-glass blues & greens, natural wood, woven textures',
     tag: 'Oceanfront',
-    desc: 'The oceanfront setting is the star, but the light, bright interiors make this one a standout — just enough color, that incredible ocean right outside the windows.',
+    desc: 'The ocean-view sunroom — floor-to-ceiling views and that light, morning to sunset. This is where we\'d have coffee every day.',
     features: ['Oceanfront', 'Ocean-view sunroom', 'Private balcony'],
     img: 'images/oceanfront-east-beach-sunroom.png',
     affiliateLink: 'https://www.vrbo.com/4106989'
@@ -418,7 +425,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 6,
     vibe: 'Coastal-chic, light & airy',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real West Beach property.',
+    desc: 'Example card — swap in a real West Beach property and its favorite-room callout.',
     features: ['Screened porch', 'Newly renovated', 'Short walk to boardwalk'],
     img: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&q=80',
     affiliateLink: '#'
@@ -429,7 +436,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 8,
     vibe: 'Bright & breezy, family-friendly',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real East Beach property.',
+    desc: 'Example card — swap in a real East Beach property and its favorite-room callout.',
     features: ['Private pool', 'Golf cart included', 'Near Night Heron Park'],
     img: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80',
     affiliateLink: '#'
@@ -440,7 +447,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 10,
     vibe: 'Quiet, elevated, design-forward',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real Vanderhorst property.',
+    desc: 'Example card — swap in a real Vanderhorst property and its favorite-room callout.',
     features: ['Ocean views', 'Chef\'s kitchen', 'Steps to Ocean Course'],
     img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
     affiliateLink: '#'
@@ -507,7 +514,7 @@ function renderProperties() {
           <div class="property-name">${p.name}</div>
           <div class="property-meta">${p.beds && p.baths ? `${p.beds} BR · ${p.baths} BA · ` : ''}Sleeps ${p.sleeps}</div>
           ${p.vibe ? `<div class="property-vibe">${p.vibe}</div>` : ''}
-          ${p.desc ? `<div class="property-desc">${p.desc}</div>` : ''}
+          ${p.desc ? `<div class="property-favorite"><span class="property-favorite-label">Favorite room</span><span class="property-favorite-text">${p.desc}</span></div>` : ''}
           ${featuresHtml}
           <div class="property-bottom">
             <a class="property-btn${linkDisabled ? ' disabled' : ''}" href="${p.affiliateLink}" target="_blank" rel="noopener sponsored">
