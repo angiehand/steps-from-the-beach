@@ -3,7 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Steps from the Beach — Kiawah Island Rentals</title>
+  <title>Kiawah Island Vacation Rentals — Steps from the Beach</title>
+  <meta name="description" content="The most beautiful vacation rentals on Kiawah Island, hand-picked for design and verified close to the sand. Browse our favorite oceanfront and beach-close stays." />
+  <link rel="canonical" href="https://stepsfromthebeach.com/kiawah" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Steps from the Beach" />
+  <meta property="og:title" content="Kiawah Island Vacation Rentals — Steps from the Beach" />
+  <meta property="og:description" content="The most beautiful vacation rentals on Kiawah Island, hand-picked for design and verified close to the sand." />
+  <meta property="og:image" content="https://stepsfromthebeach.com/images/kiawah-dunes-hero.webp" />
+  <meta property="og:url" content="https://stepsfromthebeach.com/kiawah" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Kiawah Island Vacation Rentals — Steps from the Beach" />
+  <meta name="twitter:description" content="The most beautiful vacation rentals on Kiawah Island, hand-picked for design and verified close to the sand." />
+  <meta name="twitter:image" content="https://stepsfromthebeach.com/images/kiawah-dunes-hero.webp" />
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400;1,600&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -514,7 +528,7 @@ function renderProperties() {
     return `
       <div class="property-card${isPlaceholder ? ' placeholder' : ''}">
         <div class="property-img-wrap">
-          <img class="property-img" src="${p.img}" alt="${p.name}" onerror="this.style.background='#e2e9ef'" />
+          <img class="property-img" src="${p.img}" alt="${p.name}" loading="lazy" onerror="this.style.background='#e2e9ef'" />
           <span class="property-tag">${p.tag}</span>
         </div>
         <div class="property-body">
@@ -532,6 +546,44 @@ function renderProperties() {
       </div>
     `;
   }).join('');
+  injectStructuredData(sortedBySleeps(allProperties));
+}
+
+// ── STRUCTURED DATA (SEO) ─────────────────────────────────
+// Emits an ItemList of LodgingBusiness entries so search engines can
+// understand what's featured on this page. Skips placeholder cards.
+function injectStructuredData(list) {
+  const real = list.filter(p => p.tag !== 'Placeholder');
+  if (!real.length) return;
+  const absUrl = (src) => {
+    if (!src) return undefined;
+    if (src.startsWith('http')) return src;
+    return new URL(src, window.location.origin).href;
+  };
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: real.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'LodgingBusiness',
+        name: p.name,
+        image: absUrl(p.img),
+        description: p.desc || p.vibe || undefined,
+        amenityFeature: (p.features || []).map(f => ({ '@type': 'LocationFeatureSpecification', name: f })),
+        address: { '@type': 'PostalAddress', addressLocality: 'Kiawah Island', addressRegion: 'SC', addressCountry: 'US' },
+      },
+    })),
+  };
+  let script = document.getElementById('properties-jsonld');
+  if (!script) {
+    script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'properties-jsonld';
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
 }
 
 // ── INIT ──────────────────────────────────────────────────
