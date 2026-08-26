@@ -429,7 +429,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 6,
     vibe: 'Coastal-chic, light & airy',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real West Beach property and its favorite-room callout.',
+    desc: 'Example card — swap in a real West Beach property and its standout-space callout.',
     features: ['Screened porch', 'Newly renovated', 'Short walk to boardwalk'],
     img: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&q=80',
     affiliateLink: '#'
@@ -440,7 +440,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 8,
     vibe: 'Bright & breezy, family-friendly',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real East Beach property and its favorite-room callout.',
+    desc: 'Example card — swap in a real East Beach property and its standout-space callout.',
     features: ['Private pool', 'Golf cart included', 'Near Night Heron Park'],
     img: 'https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&q=80',
     affiliateLink: '#'
@@ -451,7 +451,7 @@ const PLACEHOLDER_PROPERTIES = [
     sleeps: 10,
     vibe: 'Quiet, elevated, design-forward',
     tag: 'Placeholder',
-    desc: 'Example card — swap in a real Vanderhorst property and its favorite-room callout.',
+    desc: 'Example card — swap in a real Vanderhorst property and its standout-space callout.',
     features: ['Ocean views', 'Chef\'s kitchen', 'Steps to Ocean Course'],
     img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
     affiliateLink: '#'
@@ -518,7 +518,7 @@ function renderProperties() {
           <div class="property-name">${p.name}</div>
           <div class="property-meta">${p.beds && p.baths ? `${p.beds} BR · ${p.baths} BA · ` : ''}Sleeps ${p.sleeps}</div>
           ${p.vibe ? `<div class="property-vibe">${p.vibe}</div>` : ''}
-          ${p.desc ? `<div class="property-favorite"><span class="property-favorite-label">Favorite room</span><span class="property-favorite-text">${p.desc}</span></div>` : ''}
+          ${p.desc ? `<div class="property-favorite"><span class="property-favorite-label">Standout space</span><span class="property-favorite-text">${p.desc}</span></div>` : ''}
           ${featuresHtml}
           <div class="property-bottom">
             <a class="property-btn${linkDisabled ? ' disabled' : ''}" href="${p.affiliateLink}" target="_blank" rel="noopener sponsored">
