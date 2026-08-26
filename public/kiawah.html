@@ -482,11 +482,11 @@ async function loadKiawahFromAPI() {
     const rows = await res.json();
     if (rows.length) {
       allProperties = rows;
-      renderProperties();
     }
   } catch (e) {
     console.warn('Could not load Kiawah rentals from the database (using placeholders only):', e);
   }
+  renderProperties();
 }
 
 // ── RENDER PROPERTY CARDS ────────────────────────────────
@@ -535,7 +535,6 @@ function renderProperties() {
 }
 
 // ── INIT ──────────────────────────────────────────────────
-renderProperties();
 loadKiawahFromAPI();
 </script>
 </body>
