@@ -74,6 +74,32 @@ async function handleCreateProperty(request, env) {
   return json({ ok: true, id: result.meta.last_row_id });
 }
 
+async function handleUpdateProperty(request, env, id) {
+  if (!isAuthed(request, env)) return json({ error: 'unauthorized' }, 401);
+  const body = await request.json();
+  const {
+    beach, name, oceanfront, lat, lng, beds, baths, sleeps,
+    vibe, tag, desc, features, imgKey, affiliateLink, sortOrder,
+  } = body;
+  if (!beach || !name) return json({ error: 'beach and name are required' }, 400);
+
+  await env.DB.prepare(
+    `UPDATE properties SET
+      beach = ?, name = ?, oceanfront = ?, lat = ?, lng = ?, beds = ?, baths = ?, sleeps = ?,
+      vibe = ?, tag = ?, description = ?, features = ?, img_key = ?, affiliate_link = ?, sort_order = ?
+     WHERE id = ?`
+  ).bind(
+    beach, name, oceanfront ? 1 : 0,
+    lat ?? null, lng ?? null, beds ?? null, baths ?? null, sleeps ?? null,
+    vibe ?? '', tag ?? '', desc ?? '',
+    JSON.stringify(features || []),
+    imgKey ?? null, affiliateLink ?? '#', sortOrder ?? 0,
+    id
+  ).run();
+
+  return json({ ok: true });
+}
+
 async function handleDeleteProperty(request, env, id) {
   if (!isAuthed(request, env)) return json({ error: 'unauthorized' }, 401);
   await env.DB.prepare('DELETE FROM properties WHERE id = ?').bind(id).run();
@@ -115,9 +141,12 @@ export default {
     if (pathname === '/api/properties' && request.method === 'POST') {
       return handleCreateProperty(request, env);
     }
-    const deleteMatch = pathname.match(/^\/api\/properties\/(\d+)$/);
-    if (deleteMatch && request.method === 'DELETE') {
-      return handleDeleteProperty(request, env, deleteMatch[1]);
+    const idMatch = pathname.match(/^\/api\/properties\/(\d+)$/);
+    if (idMatch && request.method === 'DELETE') {
+      return handleDeleteProperty(request, env, idMatch[1]);
+    }
+    if (idMatch && request.method === 'PUT') {
+      return handleUpdateProperty(request, env, idMatch[1]);
     }
     if (pathname === '/api/upload' && request.method === 'POST') {
       return handleUpload(request, env);

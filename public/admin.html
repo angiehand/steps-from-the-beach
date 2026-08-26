@@ -57,6 +57,17 @@
   .existing-item:last-child { border-bottom: none; }
   .existing-name { font-weight: 600; }
   .existing-meta { color: #94a3b8; font-size: 11.5px; }
+  .existing-actions { display: flex; gap: 8px; }
+  .btn-edit { background: #e0f2fe; color: #075985; padding: 6px 12px; font-size: 12px; }
+  .btn-edit:hover { background: #bae6fd; }
+
+  .editing-banner {
+    display: none; background: #fef3c7; color: #92400e; font-size: 12.5px;
+    padding: 9px 12px; border-radius: 8px; margin-bottom: 16px; font-weight: 600;
+    align-items: center; justify-content: space-between;
+  }
+  .btn-cancel-edit { background: transparent; color: #92400e; text-decoration: underline; padding: 0; font-size: 12px; font-weight: 700; }
+  .current-photo-note { font-size: 11.5px; color: #94a3b8; margin-top: 4px; display: none; }
 </style>
 </head>
 <body>
@@ -72,10 +83,14 @@
 </div>
 
 <div class="wrap" id="admin-wrap" style="display:none;">
-  <h1>Add a Property</h1>
+  <h1 id="form-title">Add a Property</h1>
   <p class="sub">Fills in the featured-properties list on the matching beach page.</p>
 
   <div class="card">
+    <div class="editing-banner" id="editing-banner">
+      <span id="editing-banner-text">Editing an existing property</span>
+      <button type="button" class="btn-cancel-edit" id="cancel-edit-btn">Cancel edit</button>
+    </div>
     <form id="property-form">
       <label>Beach</label>
       <select id="beach" required>
@@ -118,6 +133,7 @@
 
       <label>Photo</label>
       <input type="file" id="photo" accept="image/*" />
+      <div class="current-photo-note" id="current-photo-note">Keeps the current photo unless you choose a new file above.</div>
 
       <label>Booking link</label>
       <input type="url" id="link" placeholder="https://www.vrbo.com/..." />
@@ -135,10 +151,18 @@
 
 <script>
 let ADMIN_PASSWORD = '';
+let editingId = null;
+let editingImgKey = null;
+let currentRows = [];
 
 const gateWrap = document.getElementById('gate-wrap');
 const adminWrap = document.getElementById('admin-wrap');
 const gateStatus = document.getElementById('gate-status');
+const editingBanner = document.getElementById('editing-banner');
+const editingBannerText = document.getElementById('editing-banner-text');
+const currentPhotoNote = document.getElementById('current-photo-note');
+const submitBtnEl = document.getElementById('submit-btn');
+const formTitleEl = document.getElementById('form-title');
 
 document.getElementById('unlock-btn').addEventListener('click', unlock);
 document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
@@ -164,6 +188,7 @@ async function loadExisting() {
   try {
     const res = await fetch(`/api/properties?beach=${encodeURIComponent(beach)}`);
     const rows = await res.json();
+    currentRows = rows;
     if (!rows.length) {
       listEl.innerHTML = '<p style="font-size:13px;color:#94a3b8;">No properties added for this beach yet.</p>';
       return;
@@ -174,16 +199,65 @@ async function loadExisting() {
           <div class="existing-name">${p.name}</div>
           <div class="existing-meta">Sleeps ${p.sleeps ?? '?'} · ${p.tag || ''}</div>
         </div>
-        <button class="btn-delete" data-id="${p.id}">Delete</button>
+        <div class="existing-actions">
+          <button type="button" class="btn-edit" data-id="${p.id}">Edit</button>
+          <button type="button" class="btn-delete" data-id="${p.id}">Delete</button>
+        </div>
       </div>
     `).join('');
     listEl.querySelectorAll('.btn-delete').forEach(btn => {
       btn.addEventListener('click', () => deleteProperty(btn.dataset.id));
     });
+    listEl.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', () => startEdit(btn.dataset.id));
+    });
   } catch (e) {
     listEl.innerHTML = '<p style="font-size:13px;color:#b91c1c;">Could not load properties.</p>';
   }
 }
+
+function startEdit(id) {
+  const p = currentRows.find(r => String(r.id) === String(id));
+  if (!p) return;
+
+  editingId = p.id;
+  editingImgKey = p.img ? p.img.split('/').pop() : null;
+
+  document.getElementById('beach').value = p.beach;
+  document.getElementById('name').value = p.name || '';
+  document.getElementById('oceanfront').checked = !!p.oceanfront;
+  document.getElementById('lat').value = p.lat ?? '';
+  document.getElementById('lng').value = p.lng ?? '';
+  document.getElementById('beds').value = p.beds ?? '';
+  document.getElementById('baths').value = p.baths ?? '';
+  document.getElementById('sleeps').value = p.sleeps ?? '';
+  document.getElementById('vibe').value = p.vibe || '';
+  document.getElementById('tag').value = p.tag || '';
+  document.getElementById('desc').value = p.desc || '';
+  document.getElementById('features').value = (p.features || []).join(', ');
+  document.getElementById('photo').value = '';
+  document.getElementById('link').value = (p.affiliateLink && p.affiliateLink !== '#') ? p.affiliateLink : '';
+
+  currentPhotoNote.style.display = editingImgKey ? 'block' : 'none';
+  editingBanner.style.display = 'flex';
+  editingBannerText.textContent = `Editing "${p.name}"`;
+  formTitleEl.textContent = 'Edit Property';
+  submitBtnEl.textContent = 'Update property';
+
+  document.getElementById('property-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+  editingId = null;
+  editingImgKey = null;
+  document.getElementById('property-form').reset();
+  currentPhotoNote.style.display = 'none';
+  editingBanner.style.display = 'none';
+  formTitleEl.textContent = 'Add a Property';
+  submitBtnEl.textContent = 'Add property';
+}
+
+document.getElementById('cancel-edit-btn').addEventListener('click', cancelEdit);
 
 async function deleteProperty(id) {
   if (!confirm('Delete this property?')) return;
@@ -208,7 +282,7 @@ document.getElementById('property-form').addEventListener('submit', async (e) =>
   statusEl.style.display = 'none';
 
   try {
-    let imgKey = null;
+    let imgKey = editingId ? editingImgKey : null;
     const photoFile = document.getElementById('photo').files[0];
     if (photoFile) {
       const form = new FormData();
@@ -241,16 +315,19 @@ document.getElementById('property-form').addEventListener('submit', async (e) =>
       affiliateLink: document.getElementById('link').value || '#',
     };
 
-    const res = await fetch('/api/properties', {
-      method: 'POST',
+    const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
+    const method = editingId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
       headers: { 'content-type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
       body: JSON.stringify(body),
     });
     if (res.status === 401) throw new Error('Wrong password');
     if (!res.ok) throw new Error('Could not save property');
 
-    showStatus(statusEl, true, 'Property added! It’s now live on the beach page.');
-    document.getElementById('property-form').reset();
+    const wasEditing = !!editingId;
+    showStatus(statusEl, true, wasEditing ? 'Property updated! It’s now live on the beach page.' : 'Property added! It’s now live on the beach page.');
+    cancelEdit();
     loadExisting();
   } catch (err) {
     showStatus(statusEl, false, err.message || 'Something went wrong.');
