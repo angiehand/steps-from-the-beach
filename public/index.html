@@ -47,37 +47,95 @@
     }
     .top-bar nav a:hover { color: #4a6d94; }
 
-    /* ── HERO (split-screen: text panel + photo, side by side) ── */
+    /* ── HERO (full-bleed photo, centered overlay text) ── */
     .hero {
-      display: flex;
-      min-height: 460px;
-    }
-    .hero-text {
-      flex: 0 0 42%;
-      background: #e3ebf1;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 0 56px;
-    }
-    .hero-photo {
-      flex: 1;
+      position: relative;
+      min-height: 640px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
       background: url('images/kiawah-dunes-hero.webp');
       background-size: cover; background-position: center 60%;
     }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, rgba(20,32,46,0.15) 0%, rgba(20,32,46,0.55) 100%);
+    }
+    .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 640px; padding: 0 28px;
+    }
     .hero .eyebrow {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-      color: #6f8caa; margin-bottom: 16px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,255,255,0.82); margin-bottom: 20px;
     }
     .hero h1 {
       font-family: 'Playfair Display', Georgia, serif;
-      font-weight: 700; font-size: 34px; color: #24384d; line-height: 1.2;
+      font-weight: 700; font-size: 44px; color: #fff; line-height: 1.22;
     }
     .hero .tagline {
-      font-size: 15px; color: #5c6b7d; margin-top: 16px; line-height: 1.65;
+      font-size: 15.5px; color: rgba(255,255,255,0.88); margin-top: 20px; line-height: 1.65;
+      max-width: 480px; margin-left: auto; margin-right: auto;
+    }
+    .hero-cta {
+      display: inline-block; margin-top: 32px;
+      padding: 14px 30px; background: #fff; color: #24384d;
+      font-size: 12.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+      border-radius: 8px; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .hero-cta:hover { background: #e3ebf1; }
+    @media (max-width: 760px) {
+      .hero { min-height: 480px; }
+      .hero h1 { font-size: 30px; }
+    }
+
+    /* ── EDITORIAL (image + philosophy copy) ── */
+    .editorial {
+      display: flex; align-items: center;
+      max-width: 1080px; margin: 0 auto;
+      padding: 84px 28px;
+      gap: 64px;
+    }
+    .editorial-img {
+      flex: 0 0 44%;
+      border-radius: 14px; overflow: hidden;
+    }
+    .editorial-img img { width: 100%; height: 340px; object-fit: cover; display: block; }
+    .editorial-text { flex: 1; }
+    .editorial-text .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #6f8caa; margin-bottom: 12px;
+    }
+    .editorial-text h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px; font-weight: 700; color: #24384d; line-height: 1.3;
+      max-width: 420px;
+    }
+    .editorial-text p {
+      font-size: 14.5px; color: #5c6b7d; margin-top: 16px; line-height: 1.7;
+      max-width: 420px;
+    }
+    .editorial-text a {
+      display: inline-block; margin-top: 16px;
+      font-size: 12.5px; font-weight: 700; color: #4a6d94; text-decoration: none;
+      border-bottom: 1.5px solid #b7c8db;
     }
     @media (max-width: 760px) {
-      .hero { flex-direction: column; min-height: 0; }
-      .hero-text { padding: 40px 28px; text-align: center; }
-      .hero-photo { height: 260px; }
+      .editorial { flex-direction: column; padding: 56px 28px; gap: 28px; text-align: center; }
+      .editorial-img { flex: none; width: 100%; }
+      .editorial-text h2, .editorial-text p { max-width: none; }
+    }
+
+    /* ── QUOTE BAND (full-width statement break) ── */
+    .quote-band {
+      background: #33475e; color: #fff;
+      padding: 76px 24px; text-align: center;
+    }
+    .quote-band p {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 30px; font-weight: 700; line-height: 1.4;
+      max-width: 560px; margin: 0 auto;
     }
 
     /* ── BEACHES SECTION ── */
@@ -107,10 +165,9 @@
       border-radius: 16px; overflow: hidden;
       text-decoration: none; display: block;
       background: #fff;
-      box-shadow: 0 1px 3px rgba(31,47,66,0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s;
     }
-    .beach-card.live:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(31,47,66,0.14); }
+    .beach-card.live:hover { transform: translateY(-4px); }
     .beach-img-wrap { position: relative; }
     .beach-img {
       width: 100%; height: 220px; object-fit: cover; display: block;
@@ -142,22 +199,6 @@
       padding: 5px 10px; border-radius: 20px;
     }
 
-    /* ── VERIFY BAND ── */
-    .verify-band {
-      background: #33475e; color: #fff;
-      padding: 52px 24px; text-align: center;
-    }
-    .verify-band .icon { font-size: 26px; margin-bottom: 14px; }
-    .verify-band h3 {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 23px; font-weight: 700; max-width: 560px; margin: 0 auto;
-      line-height: 1.4;
-    }
-    .verify-band p {
-      font-size: 13.5px; color: rgba(255,255,255,0.72); margin-top: 14px;
-      max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.65;
-    }
-
     footer {
       text-align: center; padding: 26px 20px; font-size: 11px; color: #9aa8ba;
       background: #fff; border-top: 1px solid #e9eef3;
@@ -176,12 +217,24 @@
   </header>
 
   <div class="hero">
-    <div class="hero-text">
+    <div class="hero-inner">
       <span class="eyebrow">South Carolina Lowcountry</span>
-      <h1>The prettiest places to stay, steps from the beach.</h1>
-      <p class="tagline">When we're picking a beach rental, two things matter most: how close it is to the sand, and whether it's actually beautiful. We're guessing you feel the same way — so these are our favorite finds at each beach, chosen with exactly that in mind.</p>
+      <h1>The beach is better when you love where you're staying.</h1>
+      <p class="tagline">Hand-picked rentals, chosen for how close they are to the sand and how beautiful they are once you're inside.</p>
+      <a class="hero-cta" href="#beaches">Find your beach ↓</a>
     </div>
-    <div class="hero-photo"></div>
+  </div>
+
+  <div class="editorial">
+    <div class="editorial-img">
+      <img src="images/about-shell-detail.webp" alt="A hand-carved shell dish catching soft window light" width="1400" height="933" loading="lazy" />
+    </div>
+    <div class="editorial-text">
+      <div class="eyebrow">Our approach</div>
+      <h2>We look for the places you'd send to a friend.</h2>
+      <p>Not the biggest listing, or the newest build — the one where someone clearly cared about the details, and it shows the moment you walk in. That's the standard for every property we feature.</p>
+      <a href="about.html">How we choose →</a>
+    </div>
   </div>
 
   <section class="beaches-section" id="beaches">
@@ -219,10 +272,8 @@
     </div>
   </section>
 
-  <div class="verify-band">
-    <div class="icon">📍</div>
-    <h3>We don't list every rental on the island — only the ones we'd stay in ourselves.</h3>
-    <p>Verified beach access, real photos, no exaggerated listings. If it's featured here, we'd actually book it.</p>
+  <div class="quote-band">
+    <p>Some stays are just somewhere to sleep. Ours are part of the trip.</p>
   </div>
 
   <footer>
