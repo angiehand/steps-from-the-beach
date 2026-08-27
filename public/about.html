@@ -53,8 +53,8 @@
       padding: 56px 24px 48px; text-align: center;
     }
     .hero .eyebrow {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-      color: #6f8caa; margin-bottom: 12px;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #5c7a9c; margin-bottom: 14px;
     }
     .hero h1 {
       font-family: 'Playfair Display', Georgia, serif;
@@ -94,6 +94,45 @@
       font-family: 'Playfair Display', Georgia, serif;
       font-size: 25px; font-weight: 700; color: #24384d; margin-bottom: 24px;
     }
+
+    .pull-quote {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px; font-weight: 700; color: #24384d; line-height: 1.4;
+      text-align: center; max-width: 480px; margin: 40px auto;
+    }
+
+    .cut-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+      margin: 28px 0 32px;
+    }
+    .cut-card .cut-eyebrow {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #4a6d94; margin-bottom: 8px;
+    }
+    .cut-card p {
+      font-size: 14px; color: #45566b; line-height: 1.6;
+    }
+    @media (max-width: 640px) {
+      .cut-grid { grid-template-columns: 1fr; gap: 24px; }
+    }
+
+    .cta-block {
+      text-align: center; background: #e3ebf1; border-radius: 16px;
+      padding: 40px 32px; margin: 48px 0 40px;
+    }
+    .cta-block h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px; font-weight: 700; color: #24384d; margin-bottom: 8px;
+    }
+    .cta-block p {
+      font-size: 14.5px; color: #5c6b7d; margin-bottom: 20px;
+    }
+    .cta-btn {
+      display: inline-block; padding: 12px 26px; background: #1f3a5f; color: #fff;
+      font-size: 13px; font-weight: 700; border-radius: 8px; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .cta-btn:hover { background: #16283f; }
 
     .note-block {
       background: #eef2f6; border-radius: 14px;
@@ -135,7 +174,8 @@
     <p class="intro-text">There are thousands of places to rent at the beach. We're only interested in the ones that feel a little more special.</p>
 
     <div class="choose-block">
-      <h2>Why we're picky</h2>
+      <div class="section-eyebrow">Why we're picky</div>
+      <p><strong>Close to the sand. Thoughtful by design.</strong></p>
       <p>Two things matter most when we're choosing a beach rental: how close it is to the sand, and whether someone has put real thought into making it a beautiful place to stay.</p>
       <p>Most rental sites let you filter by bedrooms, amenities, and location. We're looking for something a little harder to filter for — the places where the design itself is part of the appeal.</p>
     </div>
@@ -148,24 +188,47 @@
     <div class="choose-block">
       <p>Every rental worth staying in should be clean, well-maintained, and accurately photographed. That's the starting point, not the reason it makes our list.</p>
       <p>We're looking for the places that went further — the ones where someone clearly cared about the details. A thoughtfully furnished sunroom. A kitchen you'd actually want to cook in. Bedrooms with beautiful linens, art, and details that don't feel like an afterthought.</p>
-      <p>It doesn't have to be the biggest, newest, or most expensive rental. Thoughtful beats expensive every time.</p>
       <p><strong>That's the difference between a place to sleep and a place that becomes part of the trip.</strong></p>
     </div>
 
+    <p class="pull-quote">Thoughtful beats expensive every time.</p>
+
     <hr class="section-divider" />
 
+    <div class="section-eyebrow">The short list</div>
+    <div class="section-heading">We don't list everything</div>
+
     <div class="choose-block">
-      <h2>We don't list everything</h2>
       <p>If an island has a thousand rentals and only a handful meet that bar, we'll show you the handful.</p>
       <p>We'd rather give you a short list worth considering than a long one you have to sift through yourself. That's the whole point.</p>
     </div>
 
+    <div class="section-eyebrow">What makes the cut</div>
+    <div class="section-heading">Three things we look for</div>
+
+    <div class="cut-grid">
+      <div class="cut-card">
+        <div class="cut-eyebrow">Close to the Sand</div>
+        <p>We check how close each property really is to beach access, rather than relying solely on descriptions like "steps from the beach."</p>
+      </div>
+      <div class="cut-card">
+        <div class="cut-eyebrow">Thoughtfully Designed</div>
+        <p>Then we look at the home itself — the design, furnishings, outdoor spaces, views, and details that make it stand out.</p>
+      </div>
+      <div class="cut-card">
+        <div class="cut-eyebrow">The Standout Space</div>
+        <p>In every home, we call out one Standout Space: the room, view, or corner that caught our attention and made us want to keep looking.</p>
+      </div>
+    </div>
+
     <div class="choose-block">
-      <h2>What we look for</h2>
-      <p>We check how close each property really is to beach access, rather than relying solely on descriptions like "steps from the beach."</p>
-      <p>Then we look at the home itself — the design, furnishings, outdoor spaces, views, and details that make it stand out.</p>
-      <p>And in every home, we call out one <strong>Standout Space</strong>: the room, view, or corner that caught our attention and made us want to keep looking.</p>
       <p>We're not here to critique the homes that don't make the list. We're here to celebrate the ones where someone clearly put extra thought and care into creating a stay that feels special.</p>
+    </div>
+
+    <div class="cta-block">
+      <h3>Ready to find your beach?</h3>
+      <p>Explore the places that made our list.</p>
+      <a class="cta-btn" href="index.html">Explore All Beaches →</a>
     </div>
 
     <div class="note-block">
